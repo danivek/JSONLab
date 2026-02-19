@@ -10,6 +10,8 @@ It provides a editing experience with powerful tools for viewing, editing, forma
 
 **JSONLab** is intentionally built with **zero frameworks** using **100% Vanilla JavaScript, CSS, and HTML5**. 
 
+### [🔗 View Live Demo](https://danivek.github.io/JSONLab/)
+
 ## 📚 Table of Contents
 
 - [JSONLab](#jsonlab)
