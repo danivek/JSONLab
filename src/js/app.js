@@ -227,6 +227,7 @@ const App = {
     // Query Run
     // Auto-run on input with debounce
     const queryInput = document.getElementById('query-input');
+
     if (queryInput) {
       let debounceTimer;
       queryInput.addEventListener('input', () => {
@@ -235,9 +236,14 @@ const App = {
       });
     }
 
-    document
-      .getElementById('btn-query-apply')
-      ?.addEventListener('click', () => this.applyQueryResult());
+    const queryEngineRadios = document.getElementsByName('query-engine');
+    if (queryEngineRadios.length > 0) {
+      queryEngineRadios.forEach((radio) => {
+        radio.addEventListener('change', () => this.runQuery());
+      });
+    }
+
+    // Apply result is now live on input change
   },
 
   /**
@@ -444,19 +450,26 @@ const App = {
    */
   runQuery() {
     const query = document.getElementById('query-input').value;
+    const engine = document.querySelector('input[name="query-engine"]:checked')?.value || 'jsonpath';
     const dataStr = this.queryInputEditor ? this.queryInputEditor.getValue() : '{}';
 
     try {
       const data = JSON.parse(dataStr);
-      console.log('Query:', query);
+      console.log('Query:', query, 'Engine:', engine);
 
       // Use global QueryUtils
       if (window.QueryUtils) {
-        const result = QueryUtils.query(data, query);
+        const result = QueryUtils.query(data, query, engine);
         const resultStr = JSON.stringify(result, null, 2);
 
         if (this.queryOutputEditor) {
           this.queryOutputEditor.setValue(resultStr);
+
+          // Apply to main editor live (without toast)
+          const target = this.activeEditor || this.editors[0];
+          if (target) {
+            target.setValue(resultStr);
+          }
         }
       } else {
         if (this.queryOutputEditor) this.queryOutputEditor.setValue('// QueryUtils not loaded');
@@ -468,31 +481,6 @@ const App = {
     }
   },
 
-  applyQueryResult() {
-    if (!this.queryOutputEditor) return;
-    const result = this.queryOutputEditor.getValue();
-
-    // Basic check if it looks like error
-    if (result.startsWith('// Error')) {
-      this.showToast('Cannot apply error result', 'error');
-      return;
-    }
-
-    // Apply to main editor
-    const target = this.activeEditor || this.editors[0];
-    target.setValue(result);
-
-    // Sync if needed (handled by editor logic usually, but let's be safe)
-    if (target.id === 'left') {
-      const right = this.editors.find((e) => e.id === 'right');
-      if (right) right.setValue(result);
-    }
-
-    this.showToast('Query result applied', 'success');
-
-    // Switch back to normal or split? User might want to stay.
-    // Let's stay in Query mode so they can refine if needed.
-  },
 
   /**
    * Update theme for all editors

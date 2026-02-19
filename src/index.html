@@ -28,10 +28,10 @@
                 <h1>JSONLab</h1>
             </div>
             <div class="header-actions">
-                <button id="btn-mode-normal" class="btn btn-secondary" title="Normal View (Single Editor)">
+                <button id="btn-mode-normal" class="btn btn-secondary active" title="Normal View (Single Editor)">
                     <i data-lucide="square" class="icon"></i> Normal
                 </button>
-                <button id="btn-mode-split" class="btn btn-secondary active" title="Split View">
+                <button id="btn-mode-split" class="btn btn-secondary" title="Split View">
                     <i data-lucide="columns" class="icon"></i> Split
                 </button>
                 <button id="btn-mode-compare" class="btn btn-secondary" title="Compare Left vs Right">
@@ -67,18 +67,42 @@
             </div>
 
             <!-- Query Panel -->
-            <!-- Query Panel -->
             <div id="query-panel" class="editor-panel query-panel">
                 <div class="query-input-container">
                     <div class="query-controls">
-                        <div class="query-input-wrapper">
-                            <label for="query-input">JMESPath:</label>
+                        <div class="query-input-wrapper" style="flex: 1">
+                            <div class="query-engine-selector">
+                                <span class="engine-label">Engine:</span>
+                                <div class="engine-radios">
+                                    <label class="radio-label">
+                                        <input type="radio" name="query-engine" value="jsonpath" checked>
+                                        <span>JSONPath Plus</span>
+                                        <a href="https://github.com/JSONPath-Plus/JSONPath" target="_blank"
+                                            title="JSONPath Plus Documentation" class="engine-help">
+                                            <i data-lucide="help-circle"></i>
+                                        </a>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="query-engine" value="jmespath">
+                                        <span>JMESPath</span>
+                                        <a href="https://jmespath.org/specification.html" target="_blank"
+                                            title="JMESPath Specification" class="engine-help">
+                                            <i data-lucide="help-circle"></i>
+                                        </a>
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="query-engine" value="jql">
+                                        <span>JSON Query</span>
+                                        <a href="https://github.com/jsonquerylang/jsonquery" target="_blank"
+                                            title="JSON Query Documentation" class="engine-help">
+                                            <i data-lucide="help-circle"></i>
+                                        </a>
+                                    </label>
+                                </div>
+                            </div>
                             <textarea id="query-input" class="query-input"
-                                placeholder="e.g. locations[?state == 'WA'].name | sort(@)"></textarea>
+                                placeholder="e.g. locations[?state == 'WA'].name"></textarea>
                         </div>
-                        <button id="btn-query-apply" class="btn btn-success" title="Apply result to Main Editor">
-                            Apply
-                        </button>
                     </div>
                 </div>
                 <div class="query-split-view">
@@ -140,6 +164,15 @@
 
     <!-- Monaco Editor Loader -->
     <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/loader.js"></script>
+
+    <!-- Query Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/jmespath@0.16.0/jmespath.min.js"></script>
+    <script type="module">
+        import { jsonquery } from 'https://cdn.jsdelivr.net/npm/@jsonquerylang/jsonquery@5.1.1/lib/jsonquery.min.js';
+        import { JSONPath } from 'https://cdn.jsdelivr.net/npm/jsonpath-plus@10.4.0/dist/index-browser-esm.min.js';
+        window.jsonquery = jsonquery;
+        window.JSONPath = { JSONPath };
+    </script>
 
     <!-- App Scripts -->
     <script type="module" src="js/utils/jsonUtils.js"></script>

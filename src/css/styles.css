@@ -679,6 +679,67 @@ body {
   gap: var(--space-md);
   align-items: center;
   /* Center vertically */
+  flex-wrap: wrap;
+}
+
+.engine-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-right: var(--space-sm);
+}
+
+.engine-radios {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: center;
+}
+
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  color: var(--color-text-primary);
+  user-select: none;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.radio-label:hover {
+  background: var(--color-bg-hover);
+}
+
+.radio-label input[type='radio'] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.engine-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-radius: 50%;
+  transition: all 0.2s;
+  padding: 2px;
+  margin-left: 2px;
+}
+
+.engine-help:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-light);
+  transform: scale(1.1);
+}
+
+.engine-help svg {
+  width: 14px;
+  height: 14px;
 }
 
 .query-input-wrapper {

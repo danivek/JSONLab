@@ -63,7 +63,7 @@ Switch to **Compare Mode**. The left and right editor contents are loaded into a
 
 ### Querying JSON
 
-Switch to **Query Mode**. The current active editor content is loaded into the input panel. Type a **JMESPath** expression (e.g., `locations[?state == 'WA'].name`) in the query box — results update automatically as you type. Click **Apply** to push the result back to the main editor.
+Switch to **Query Mode**. The current active editor content is loaded into the input panel. Choose your query engine ([JMESPath](https://jmespath.org/), [JSONPath Plus](https://github.com/JSONPath-Plus/JSONPath), or [JSONQuery](https://github.com/jsonquerylang/jsonquery)) and type your expression — results update automatically as you type, and the transformation is applied to the main editor live.
 
 ### Importing Files
 
@@ -117,6 +117,9 @@ npm run preview
 -   **Editor**: [Monaco Editor](https://microsoft.github.io/monaco-editor/)
 -   **Icons**: [Lucide](https://lucide.dev/)
 -   **JSON Repair**: [jsonrepair](https://github.com/josdejong/jsonrepair)
+-   **JMESPath**: [jmespath](https://github.com/jmespath/jmespath.js)
+-   **JSONPath Plus**: [jsonpath-plus](https://github.com/JSONPath-Plus/JSONPath)
+-   **JSONQuery**: [jsonquerylang](https://github.com/jsonquerylang/jsonquery)
 
 ## 🤝 Contributing
 
