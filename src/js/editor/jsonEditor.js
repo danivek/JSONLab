@@ -390,8 +390,11 @@ class JsonEditor {
         break;
       case 'table':
         this.tablePanel.classList.add('active');
-        if (window.TableView && typeof window.TableView.render === 'function') {
-          window.TableView.render(content, this.tablePanel.querySelector('.table-container'));
+        if (!this.tableView && window.TableView) {
+          this.tableView = new TableView(this.tablePanel.querySelector('.table-container'));
+        }
+        if (this.tableView) {
+          this.tableView.render(content);
         }
         break;
     }

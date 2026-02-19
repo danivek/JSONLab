@@ -2,23 +2,20 @@
  * Table View - Spreadsheet-style view for arrays of objects
  */
 
-const TableView = {
-  container: null,
-  data: null,
-
-  /**
-   * Initialize table view
-   */
-  init() {
-    this.container = document.getElementById('table-view');
-  },
+class TableView {
+  constructor(container) {
+    this.container = container;
+    this.data = null;
+  }
 
   /**
    * Render JSON data as table
    */
   render(jsonString) {
+    if (!this.container) return;
+
     try {
-      const data = JSON.parse(jsonString);
+      const data = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
       this.data = data;
 
       // Check if data is suitable for table view
@@ -45,7 +42,7 @@ const TableView = {
     } catch (e) {
       this.container.innerHTML = `<p class="error" style="color: var(--color-error);">Invalid JSON: ${e.message}</p>`;
     }
-  },
+  }
 
   /**
    * Render array as HTML table
@@ -97,7 +94,7 @@ const TableView = {
     html += '</tbody></table>';
 
     this.container.innerHTML = html;
-  },
+  }
 
   /**
    * Render array of primitives
@@ -113,7 +110,7 @@ const TableView = {
 
     html += '</tbody></table>';
     this.container.innerHTML = html;
-  },
+  }
 
   /**
    * Format cell value for display
@@ -149,7 +146,7 @@ const TableView = {
     }
 
     return this.escapeHtml(String(value));
-  },
+  }
 
   /**
    * Format tooltip for cell
@@ -162,7 +159,7 @@ const TableView = {
       return JSON.stringify(value, null, 2);
     }
     return String(value);
-  },
+  }
 
   /**
    * Escape HTML special characters
@@ -171,7 +168,7 @@ const TableView = {
     const div = document.createElement('div');
     div.textContent = String(str);
     return div.innerHTML;
-  },
+  }
 
   /**
    * Clear the table view
@@ -180,8 +177,8 @@ const TableView = {
     this.data = null;
     this.container.innerHTML =
       '<p class="table-placeholder">Table view works best with arrays of objects</p>';
-  },
-};
+  }
+}
 
 // Export for use in other modules
 window.TableView = TableView;
