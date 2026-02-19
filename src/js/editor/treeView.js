@@ -38,6 +38,11 @@ class TreeView {
       return;
     }
 
+    const isNewData = jsonContent !== undefined;
+    if (isNewData && this.expandedPaths.size === 0 && this.data) {
+      this.collectAllPaths(this.data, []);
+    }
+
     this.container.innerHTML = '';
     const tree = this.createNode(this.data, '', null);
     this.container.appendChild(tree);
