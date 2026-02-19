@@ -5,7 +5,10 @@ class JsonEditor {
   constructor(container, id, initialMode = 'text') {
     this.container = container;
     this.id = id;
-    this.mode = initialMode; // 'text', 'tree', 'table'
+
+    // Load saved mode or use initial
+    const savedMode = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.WORKSPACE_MODE + this.id, initialMode) : initialMode;
+    this.mode = savedMode; // 'text', 'tree', 'table'
     this.editor = null; // Monaco editor instance
     this.history = [];
     this.historyIndex = -1;
@@ -257,11 +260,17 @@ class JsonEditor {
 
     const container = this.textPanel.querySelector('.monaco-container');
 
+    // Load content from IndexedDB (async)
+    let initialValue = '{}';
+    if (window.StorageUtils) {
+      initialValue = await StorageUtils.loadFromIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + this.id, '{}');
+    }
+
     this.editor = monaco.editor.create(container, {
-      value: '{}',
       language: 'json',
       theme:
         document.documentElement.getAttribute('data-theme') === 'dark' ? 'json-dark' : 'json-light',
+      value: initialValue,
       automaticLayout: true,
       folding: true,
       wordWrap: 'on',
@@ -372,6 +381,11 @@ class JsonEditor {
   switchMode(mode) {
     this.mode = mode;
 
+    // Persist local mode
+    if (window.StorageUtils) {
+      StorageUtils.save(StorageUtils.KEYS.WORKSPACE_MODE + this.id, mode);
+    }
+
     // Hide all
     [this.textPanel, this.treePanel, this.tablePanel].forEach((p) => p.classList.remove('active'));
 
@@ -415,6 +429,11 @@ class JsonEditor {
   onContentChange() {
     this.updateStatusBar();
     this.saveToHistory();
+
+    // Persist content to IndexedDB (Async)
+    if (window.StorageUtils) {
+       StorageUtils.saveToIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + this.id, this.getValue());
+    }
   }
 
   updateStatusBar() {

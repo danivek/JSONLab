@@ -7,7 +7,7 @@ const Theme = {
    * Initialize theme from local storage or system preference
    */
   init() {
-    const stored = localStorage.getItem('jsonlab-theme');
+    const stored = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.APP_THEME) : null;
 
     if (stored) {
       this.set(stored);
@@ -19,7 +19,8 @@ const Theme = {
 
     // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (!localStorage.getItem('jsonlab-theme')) {
+      const currentStored = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.APP_THEME) : null;
+      if (!currentStored) {
         this.set(e.matches ? 'dark' : 'light');
       }
     });
@@ -53,7 +54,9 @@ const Theme = {
     const current = this.get();
     const newTheme = current === 'dark' ? 'light' : 'dark';
     this.set(newTheme);
-    localStorage.setItem('jsonlab-theme', newTheme);
+    if (window.StorageUtils) {
+      StorageUtils.save(StorageUtils.KEYS.APP_THEME, newTheme);
+    }
   },
 
   /**

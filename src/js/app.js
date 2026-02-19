@@ -21,7 +21,7 @@ const App = {
     container.innerHTML = '';
 
     // Create Editors (Default)
-    this.createEditors(container);
+    await this.createEditors(container);
 
     // Initialize other components (Global listeners if any)
 
@@ -31,7 +31,7 @@ const App = {
   /**
    * Create Editors (Init logic)
    */
-  createEditors(container) {
+  async createEditors(container) {
     // Left Editor
     const leftContainer = document.createElement('div');
     leftContainer.className = 'editor-wrapper';
@@ -68,10 +68,18 @@ const App = {
     // Set active editor to left by default
     this.setActiveEditor(leftEditor);
 
-    // Setup default content (optional)
-    leftEditor.setValue(TextEditor.getDefaultJson());
-    // Sync to right
-    rightEditor.setValue(leftEditor.getValue());
+    // Setup default content ONLY if no saved content exists
+    if (window.StorageUtils) {
+      const leftSaved = await StorageUtils.loadFromIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + 'left');
+      if (!leftSaved) {
+        leftEditor.setValue(TextEditor.getDefaultJson());
+        // Sync to right only if both are empty
+        const rightSaved = await StorageUtils.loadFromIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + 'right');
+        if (!rightSaved) {
+          rightEditor.setValue(leftEditor.getValue());
+        }
+      }
+    }
 
     // --- Custom Features --- //
 
@@ -104,8 +112,9 @@ const App = {
       },
     });
 
-    // Default View: Normal
-    this.switchGlobalMode('normal');
+    // Default View: Load from storage or default to normal
+    const savedGlobalMode = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.GLOBAL_VIEW_MODE, 'normal') : 'normal';
+    this.switchGlobalMode(savedGlobalMode);
 
     // Initialize Split Resizer
     this.initSplitResizer();
@@ -255,6 +264,11 @@ const App = {
       .querySelectorAll('.header-actions .btn')
       .forEach((btn) => btn.classList.remove('active'));
     document.getElementById(`btn-mode-${mode}`)?.classList.add('active');
+
+    // Persist global view mode
+    if (window.StorageUtils) {
+      StorageUtils.save(StorageUtils.KEYS.GLOBAL_VIEW_MODE, mode);
+    }
 
     // Reset display
     const editorsContainer = document.getElementById('editors-container');
