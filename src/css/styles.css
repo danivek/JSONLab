@@ -291,7 +291,6 @@ body {
 .primary-toolbar .btn {
   padding: 6px 8px;
   /* Compact */
-  font-size: var(--font-size-xs);
 }
 
 /* Mode Tabs in Toolbar */

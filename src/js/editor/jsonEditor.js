@@ -59,19 +59,19 @@ class JsonEditor {
     this.primaryToolbar.className = 'toolbar primary-toolbar';
     this.primaryToolbar.innerHTML = `
             <div class="toolbar-group toolbar-group-left">
-                <button class="btn btn-secondary btn-sm btn-new" title="New / Clear Editor">
+                <button class="btn btn-secondary btn-new" title="New / Clear Editor">
                     <i data-lucide="file-plus" class="icon"></i> New
                 </button>
-                <button class="btn btn-secondary btn-sm btn-import-file" title="Import File">
+                <button class="btn btn-secondary btn-import-file" title="Import File">
                     <i data-lucide="folder-open" class="icon"></i> Import
                 </button>
-                <button class="btn btn-secondary btn-sm btn-import-url" title="Import from URL">
+                <button class="btn btn-secondary btn-import-url" title="Import from URL">
                     <i data-lucide="link" class="icon"></i> URL
                 </button>
-                <button class="btn btn-secondary btn-sm btn-export" title="Export File">
+                <button class="btn btn-secondary btn-export" title="Export File">
                     <i data-lucide="save" class="icon"></i> Export
                 </button>
-                <button class="btn btn-secondary btn-sm btn-example" title="Load Example JSON">
+                <button class="btn btn-secondary btn-example" title="Load Example JSON">
                     <i data-lucide="file-up" class="icon"></i> Load Example
                 </button>
             </div>
