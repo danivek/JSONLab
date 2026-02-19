@@ -896,6 +896,27 @@ body {
   flex-shrink: 0;
 }
 
+.global-footer {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  z-index: 100;
+}
+
+.status-link {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.status-link:hover {
+  color: var(--color-accent);
+  background: var(--color-bg-hover);
+}
+
 .tree-node-header.selected {
   background-color: var(--color-accent-light) !important;
 }
