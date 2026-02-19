@@ -46,9 +46,10 @@ class EditorToolbar {
                 <button class="btn btn-secondary btn-icon btn-compact" title="Compact JSON">
                     <i data-lucide="fold-vertical" class="icon"></i>
                 </button>
-            <div class="toolbar-divider"></div>
-               
             </div>
+
+            <div class="toolbar-divider"></div>
+
             <div class="toolbar-group">
                 <button class="btn btn-secondary btn-icon btn-undo" title="Undo (Ctrl+Z)" disabled>
                     <i data-lucide="undo" class="icon"></i>

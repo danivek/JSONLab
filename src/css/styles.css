@@ -159,6 +159,14 @@ body {
 .header-actions {
   display: flex;
   gap: var(--space-sm);
+  align-items: center;
+}
+
+.header .btn {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Buttons */
@@ -265,6 +273,11 @@ body {
   height: 24px;
   background: var(--color-border);
   margin: 0 var(--space-xs);
+}
+
+.header .toolbar-divider {
+  height: 32px;
+  margin: 0 var(--space-sm);
 }
 
 .toolbar-group {
