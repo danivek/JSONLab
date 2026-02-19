@@ -71,6 +71,9 @@ class JsonEditor {
                 <button class="btn btn-secondary btn-sm btn-export" title="Export File">
                     <i data-lucide="save" class="icon"></i> Export
                 </button>
+                <button class="btn btn-secondary btn-sm btn-example" title="Load Example JSON">
+                    <i data-lucide="file-up" class="icon"></i> Load Example
+                </button>
             </div>
             <div class="toolbar-group toolbar-group-right"></div>
              <input type="file" class="hidden-file-input" accept=".json,.csv,.txt" hidden>
@@ -104,6 +107,13 @@ class JsonEditor {
 
     this.primaryToolbar.querySelector('.btn-export').addEventListener('click', () => {
       this.exportFile();
+    });
+
+    this.primaryToolbar.querySelector('.btn-example').addEventListener('click', () => {
+      if (window.TextEditor) {
+        this.setValue(TextEditor.getDefaultJson());
+        if (window.App) App.showToast('Example JSON loaded', 'success');
+      }
     });
 
     if (window.lucide) {
