@@ -30,10 +30,10 @@ class EditorToolbar {
             
             <div class="toolbar-group">
                 <button class="btn btn-secondary btn-icon btn-expand" title="Expand All">
-                    <i data-lucide="chevrons-up-down" class="icon"></i>
+                    <i data-lucide="list-chevrons-up-down" class="icon"></i>
                 </button>
                 <button class="btn btn-secondary btn-icon btn-collapse" title="Collapse All">
-                    <i data-lucide="chevrons-down-up" class="icon"></i>
+                    <i data-lucide="list-chevrons-down-up" class="icon"></i>
                 </button>
             </div>
             
@@ -44,7 +44,7 @@ class EditorToolbar {
                     <i data-lucide="align-left" class="icon"></i>
                 </button>
                 <button class="btn btn-secondary btn-icon btn-compact" title="Compact JSON">
-                    <i data-lucide="minimize" class="icon"></i>
+                    <i data-lucide="fold-vertical" class="icon"></i>
                 </button>
             <div class="toolbar-divider"></div>
                
