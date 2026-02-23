@@ -53,6 +53,17 @@
                     <i data-lucide="moon" id="theme-icon"></i>
                 </button>
             </div>
+            <script>
+                // prevent FOUC: activate the correct mode button before first paint
+                (function () {
+                    var mode = localStorage.getItem('jsonlab_global_view_mode') || 'normal';
+                    if (mode !== 'normal') {
+                        document.getElementById('btn-mode-normal').classList.remove('active');
+                        var btn = document.getElementById('btn-mode-' + mode);
+                        if (btn) btn.classList.add('active');
+                    }
+                })();
+            </script>
         </header>
 
         <!-- Main Editor Area -->

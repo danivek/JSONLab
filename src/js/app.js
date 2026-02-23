@@ -51,7 +51,7 @@ const App = {
     rightContainer.className = 'editor-wrapper';
     rightContainer.id = 'editor-wrapper-right';
     rightContainer.style.flex = '1';
-    rightContainer.style.display = 'flex';
+    rightContainer.style.display = 'none'; // hidden until switchGlobalMode sets the correct layout
     rightContainer.style.flexDirection = 'column';
     rightContainer.style.minWidth = '0';
     container.appendChild(rightContainer);
