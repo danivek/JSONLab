@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JSONLab</title>
     <meta name="description" content="View, edit, format, validate, repair, query, and compare JSON data" />
+    <script>
+        // prevent FOUC: apply theme before first paint
+        (function () {
+            var stored = localStorage.getItem('jsonlab_theme');
+            var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <link rel="stylesheet" href="css/styles.css" />
     <!-- Monaco Editor from CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/editor/editor.main.css" />
