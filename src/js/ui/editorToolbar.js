@@ -94,7 +94,7 @@ class EditorToolbar {
     on('.btn-undo', () => this.editor.undo());
     on('.btn-redo', () => this.editor.redo());
     on('.btn-copy', () => this.editor.copyToClipboard());
-    on('.btn-clear', () => this.editor.clear());
+    on('.btn-clear', () => this.editor.confirmClear());
 
     // Mode tabs
     this.element.querySelectorAll('.mode-tab').forEach((tab) => {

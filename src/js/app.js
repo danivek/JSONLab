@@ -156,7 +156,7 @@ const App = {
     this.activeEditor?.copyToClipboard();
   },
   clear() {
-    this.activeEditor?.clear();
+    this.activeEditor?.confirmClear();
   },
 
   switchMode(mode) {

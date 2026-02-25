@@ -589,8 +589,31 @@ class JsonEditor {
     }
   }
 
+  async confirmClear() {
+    const content = this.getValue();
+    if (!content || content.trim() === '' || content.trim() === '{}' || content.trim() === '[]') {
+      this.clear();
+      return;
+    }
+
+    if (window.Modal) {
+      const confirmed = await Modal.confirm(
+        'Are you sure you want to clear the editor? This action cannot be undone.',
+        'Clear Editor'
+      );
+      if (confirmed) {
+        this.clear();
+      }
+    } else {
+      // Fallback if Modal is not available
+      if (confirm('Are you sure you want to clear the editor?')) {
+        this.clear();
+      }
+    }
+  }
+
   clear() {
-    this.setValue('');
+    this.setValue('{\n}');
   }
 }
 
