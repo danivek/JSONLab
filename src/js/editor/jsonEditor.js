@@ -437,8 +437,8 @@ class JsonEditor {
   }
 
   onContentChange() {
-    this.updateStatusBar();
     this.saveToHistory();
+    this.updateStatusBar();
 
     // Persist content to IndexedDB (Async)
     if (window.StorageUtils) {
