@@ -143,6 +143,11 @@
             <div class="status-left">
             </div>
             <div class="status-right">
+                <button id="btn-shortcuts" class="status-link" title="Keyboard Shortcuts">
+                    <i data-lucide="keyboard"
+                        style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>
+                    <span>Shortcuts</span>
+                </button>
                 <a href="https://github.com/danivek/JSONLab" target="_blank" class="status-link"
                     title="View Source on GitHub">
                     <i data-lucide="github"
@@ -151,6 +156,75 @@
                 </a>
             </div>
         </footer>
+
+        <!-- Shortcuts Popover -->
+        <div id="shortcuts-popover" class="popover hidden">
+            <div class="popover-content">
+                <h3><i data-lucide="keyboard" class="icon"
+                        style="width: 18px; height: 18px; vertical-align: text-bottom; margin-right: 8px;"></i>Keyboard
+                    Shortcuts</h3>
+                <div class="shortcuts-section">
+                    <table class="shortcuts-table">
+                        <thead>
+                            <tr>
+                                <th>Shortcut</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>Ctrl/Cmd(⌘) + Shift + F</code></td>
+                                <td>Format JSON</td>
+                            </tr>
+                            <tr>
+                                <td><code>Ctrl/Cmd(⌘) + D</code></td>
+                                <td>Toggle dark/light theme</td>
+                            </tr>
+                            <tr>
+                                <td><code>Ctrl/Cmd(⌘) + Z</code></td>
+                                <td>Undo</td>
+                            </tr>
+                            <tr>
+                                <td><code>Ctrl/Cmd(⌘) + Y</code></td>
+                                <td>Redo</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="shortcuts-section">
+                    <div class="shortcuts-section">
+                        <table class="shortcuts-table">
+                            <thead>
+                                <tr>
+                                    <th>Monaco Editor (text view)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>Ctrl/Cmd(⌘) + F</code></td>
+                                    <td>Find</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Ctrl/Cmd(⌘) + H</code></td>
+                                    <td>Replace</td>
+                                </tr>
+                                <tr>
+                                    <td><code>Alt/Option(⌥) + Click</code></td>
+                                    <td>Multi-cursor</td>
+                                </tr>
+                                <tr>
+                                    <td><code>...</code></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="popover-arrow"></div>
+        </div>
 
         <!-- Hidden file input -->
         <input type="file" id="file-input" accept=".json,.csv,.txt" hidden />

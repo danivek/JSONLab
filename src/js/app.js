@@ -253,6 +253,41 @@ const App = {
     }
 
     // Apply result is now live on input change
+    
+    // Shortcuts Popover
+    this.initShortcutsPopover();
+  },
+
+  /**
+   * Initialize Shortcuts Popover
+   */
+  initShortcutsPopover() {
+    const btn = document.getElementById('btn-shortcuts');
+    const popover = document.getElementById('shortcuts-popover');
+    if (!btn || !popover) return;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      popover.classList.toggle('hidden');
+      
+      // Re-initialize icons if they haven't been transformed yet or to be safe
+      if (window.lucide && !popover.classList.contains('hidden')) {
+        lucide.createIcons({ root: popover });
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!popover.classList.contains('hidden') && !popover.contains(e.target) && e.target !== btn) {
+        popover.classList.add('hidden');
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !popover.classList.contains('hidden')) {
+        popover.classList.add('hidden');
+      }
+    });
   },
 
   /**
