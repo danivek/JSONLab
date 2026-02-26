@@ -396,6 +396,10 @@ class JsonEditor {
       StorageUtils.save(StorageUtils.KEYS.WORKSPACE_MODE + this.id, mode);
     }
 
+    if (this.toolbar && typeof this.toolbar.setActiveTab === 'function') {
+      this.toolbar.setActiveTab(mode);
+    }
+
     // Hide all
     [this.textPanel, this.treePanel, this.tablePanel].forEach((p) => p.classList.remove('active'));
 

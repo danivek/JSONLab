@@ -101,11 +101,18 @@ class EditorToolbar {
       tab.addEventListener('click', () => {
         const mode = tab.dataset.mode;
         this.editor.switchMode(mode);
-
-        // Update active tab UI
-        this.element.querySelectorAll('.mode-tab').forEach((t) => t.classList.remove('active'));
-        tab.classList.add('active');
       });
+    });
+  }
+
+  setActiveTab(mode) {
+    if (!this.element) return;
+    this.element.querySelectorAll('.mode-tab').forEach((t) => {
+      if (t.dataset.mode === mode) {
+        t.classList.add('active');
+      } else {
+        t.classList.remove('active');
+      }
     });
   }
 
