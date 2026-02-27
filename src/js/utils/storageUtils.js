@@ -9,6 +9,7 @@ const StorageUtils = {
     KEYS: {
         WORKSPACE_CONTENT: 'jsonlab_workspace_content_', // + editorId
         WORKSPACE_MODE: 'jsonlab_workspace_mode_', // + editorId
+        WORKSPACE_AUTOFORMAT: 'jsonlab_workspace_autoformat_', // + editorId
         GLOBAL_VIEW_MODE: 'jsonlab_global_view_mode',
         APP_THEME: 'jsonlab_theme'
     },

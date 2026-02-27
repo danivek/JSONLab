@@ -46,6 +46,9 @@ class EditorToolbar {
                 <button class="btn btn-secondary btn-icon btn-compact" title="Compact JSON">
                     <i data-lucide="fold-vertical" class="icon"></i>
                 </button>
+                <button class="btn btn-secondary btn-icon btn-autoformat" title="Autoformat on change">
+                    <i data-lucide="wand-2" class="icon"></i>
+                </button>
             </div>
 
             <div class="toolbar-divider"></div>
@@ -87,6 +90,7 @@ class EditorToolbar {
 
     on('.btn-format', () => this.editor.format());
     on('.btn-compact', () => this.editor.compact());
+    on('.btn-autoformat', () => this.editor.toggleAutoFormat());
     on('.btn-validate', () => this.editor.validate());
     on('.btn-repair', () => this.editor.repair());
     on('.btn-expand', () => this.editor.expandAll());
@@ -122,6 +126,19 @@ class EditorToolbar {
 
     if (btnUndo) btnUndo.disabled = !canUndo;
     if (btnRedo) btnRedo.disabled = !canRedo;
+  }
+
+  updateAutoFormatState(enabled) {
+    const btnAutoFormat = this.element.querySelector('.btn-autoformat');
+    if (btnAutoFormat) {
+      if (enabled) {
+        btnAutoFormat.classList.add('active');
+        btnAutoFormat.style.color = 'var(--color-accent)';
+      } else {
+        btnAutoFormat.classList.remove('active');
+        btnAutoFormat.style.color = '';
+      }
+    }
   }
 
   /**

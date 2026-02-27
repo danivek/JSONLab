@@ -9,6 +9,10 @@ class JsonEditor {
     // Load saved mode or use initial
     const savedMode = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.WORKSPACE_MODE + this.id, initialMode) : initialMode;
     this.mode = savedMode; // 'text', 'tree', 'table'
+    const savedAutoFormat = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.WORKSPACE_AUTOFORMAT + this.id, 'false') === 'true' : false;
+    this.autoFormatEnabled = savedAutoFormat;
+    this.isFormatting = false;
+    this.autoFormatTimer = null;
     this.editor = null; // Monaco editor instance
     this.history = [];
     this.historyIndex = -1;
@@ -29,6 +33,9 @@ class JsonEditor {
     this.toolbarContainer = document.createElement('div');
     this.wrapper.appendChild(this.toolbarContainer);
     this.toolbar = new EditorToolbar(this.toolbarContainer, this);
+    if (this.toolbar && this.toolbar.updateAutoFormatState) {
+        this.toolbar.updateAutoFormatState(this.autoFormatEnabled);
+    }
 
     // 3. Main Content Area (Stack of panels)
     this.mainContent = document.createElement('div');
@@ -441,12 +448,28 @@ class JsonEditor {
   }
 
   onContentChange() {
+    if (this.isFormatting) return;
+
     this.saveToHistory();
     this.updateStatusBar();
 
     // Persist content to IndexedDB (Async)
     if (window.StorageUtils) {
        StorageUtils.saveToIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + this.id, this.getValue());
+    }
+
+    if (this.autoFormatEnabled && this.mode === 'text' && this.editor) {
+      const content = this.getValue();
+      if (window.JsonUtils && JsonUtils.validate(content).valid) {
+        clearTimeout(this.autoFormatTimer);
+        this.autoFormatTimer = setTimeout(() => {
+          this.isFormatting = true;
+          this.editor.getAction('editor.action.formatDocument').run().finally(() => {
+           
+          });
+           this.isFormatting = false;
+        }, 800);
+      }
     }
   }
 
@@ -500,6 +523,22 @@ class JsonEditor {
     }
 
     this.toolbar.updateUndoRedo(this.historyIndex > 0, this.historyIndex < this.history.length - 1);
+  }
+
+  toggleAutoFormat() {
+    this.autoFormatEnabled = !this.autoFormatEnabled;
+    if (window.StorageUtils) {
+      StorageUtils.save(StorageUtils.KEYS.WORKSPACE_AUTOFORMAT + this.id, this.autoFormatEnabled.toString());
+    }
+    if (this.toolbar && this.toolbar.updateAutoFormatState) {
+      this.toolbar.updateAutoFormatState(this.autoFormatEnabled);
+    }
+    if (this.autoFormatEnabled) {
+      this.format();
+      if (window.App) App.showToast('Autoformat enabled', 'success');
+    } else {
+      if (window.App) App.showToast('Autoformat disabled', 'info');
+    }
   }
 
   // Actions
