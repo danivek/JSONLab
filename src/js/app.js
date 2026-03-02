@@ -400,6 +400,35 @@ const App = {
         this.diffEditor.onDidUpdateDiff(() => {
           this.updateDiffSummary();
         });
+
+        // Sync Labels and Toolbars with Splitter
+        const syncSplitterLayout = () => {
+          const originalEl = container.querySelector('.editor.original');
+          const labelOriginal = document.getElementById('label-original');
+          const toolbarOriginal = document.getElementById('diff-original-toolbar');
+          if (originalEl && labelOriginal && toolbarOriginal) {
+            const width = originalEl.offsetWidth;
+            labelOriginal.style.width = `${width}px`;
+            labelOriginal.style.flex = 'none';
+            toolbarOriginal.style.width = `${width}px`;
+            toolbarOriginal.style.flex = 'none';
+          }
+        };
+
+        // Use ResizeObserver on the original pane to catch splitter movement
+        const observer = new ResizeObserver(() => {
+          syncSplitterLayout();
+        });
+
+        // Need to wait for Monaco to render its internal parts
+        setTimeout(() => {
+          const originalEl = container.querySelector('.editor.original');
+          if (originalEl) observer.observe(originalEl);
+          syncSplitterLayout();
+        }, 100);
+
+        // Initialize Panel Toolbars
+        this.initDiffPanelToolbars();
       }
     }
 
@@ -420,14 +449,14 @@ const App = {
 
     // Wire up resize handle (only once)
     const handle = document.getElementById('diff-resize-handle');
-    const summary = document.getElementById('diff-summary');
+    const summaryWrapper = document.getElementById('diff-summary-wrapper');
     const comparePanel = document.getElementById('compare-panel');
-    if (handle && summary && !handle._resizeWired) {
+    if (handle && summaryWrapper && !handle._resizeWired) {
       handle._resizeWired = true;
       handle.addEventListener('mousedown', (e) => {
         e.preventDefault();
         const startY = e.clientY;
-        const startHeight = summary.offsetHeight;
+        const startHeight = summaryWrapper.offsetHeight;
         handle.classList.add('dragging');
 
         const onMouseMove = (e) => {
@@ -439,8 +468,12 @@ const App = {
             Math.floor(panelHeight * 0.8)
           );
           comparePanel.style.setProperty('--diff-summary-height', `${newHeight}px`);
-        };
 
+          // If patch editor is visible, force layout
+          if (this.currentDiffView === 'patch' && this.patchEditor) {
+            this.patchEditor.layout();
+          }
+        };
         const onMouseUp = () => {
           handle.classList.remove('dragging');
           document.removeEventListener('mousemove', onMouseMove);
@@ -451,6 +484,251 @@ const App = {
         document.addEventListener('mouseup', onMouseUp);
       });
     }
+
+    // Initialize patch view editor if not exist
+    if (!this.patchEditor) {
+      const patchContainer = document.getElementById('diff-patch-editor');
+      if (patchContainer) {
+        this.patchEditor = monaco.editor.create(patchContainer, {
+          language: 'json',
+          theme:
+            document.documentElement.getAttribute('data-theme') === 'dark'
+              ? 'json-dark'
+              : 'json-light',
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          wordWrap: 'on',
+          formatOnType: true,
+          automaticLayout: true,
+        });
+
+        this.patchEditor.onDidChangeModelContent(() => {
+          // If the user is manually editing the patch (and not us systematically setting it)
+          if (!this.isApplyingPatch) {
+            try {
+              const patchStr = this.patchEditor.getValue();
+              const patchArray = JSON.parse(patchStr || '[]');
+
+              // Try to apply it to original model
+              const originalModel = this.diffEditor.getModel().original;
+              const originalJson = JSON.parse(originalModel.getValue() || '{}');
+
+              if (window.jsonpatch) {
+                // applyPatch mutates by default, we use mutate:false to get newDocument
+                const result = window.jsonpatch.applyPatch(originalJson, patchArray, true, false);
+                const newDoc = result.newDocument;
+
+                const modifiedModel = this.diffEditor.getModel().modified;
+                const modifiedVal = JSON.stringify(newDoc, null, 2);
+
+                if (modifiedModel.getValue() !== modifiedVal) {
+                  try {
+                    this.isApplyingPatch = true;
+                    modifiedModel.setValue(modifiedVal);
+
+                    // Also sync to the underlying modified editor
+                    if (this.editors[1]) {
+                      this.editors[1].setValue(modifiedVal);
+                    }
+                  } finally {
+                    this.isApplyingPatch = false;
+                  }
+                }
+              }
+            } catch (e) {
+              // Invalid patch or structure, ignore while typing
+            }
+          }
+        });
+      }
+    }
+
+    // Wire up radio toggle
+    const viewRadios = document.querySelectorAll('input[name="diff-view"]');
+    if (viewRadios.length > 0 && !viewRadios[0]._wired) {
+      viewRadios.forEach((radio) => {
+        radio._wired = true;
+        radio.addEventListener('change', (e) => {
+          this.currentDiffView = e.target.value;
+          const summaryEl = document.getElementById('diff-summary');
+          const patchEl = document.getElementById('diff-patch-editor');
+          const patchToolbar = document.getElementById('diff-patch-toolbar');
+          if (this.currentDiffView === 'pretty') {
+            summaryEl.classList.remove('hidden');
+            patchEl.classList.add('hidden');
+            if (patchToolbar) patchToolbar.classList.add('hidden');
+          } else {
+            summaryEl.classList.add('hidden');
+            patchEl.classList.remove('hidden');
+            if (patchToolbar) patchToolbar.classList.remove('hidden');
+            if (this.patchEditor) {
+              // Force layout update when shown to fix Monaco rendering quirk
+              setTimeout(() => this.patchEditor.layout(), 10);
+            }
+          }
+        });
+      });
+    }
+
+    // Wire up Patch Toolbar Buttons
+    const btnFormat = document.getElementById('btn-patch-format');
+    if (btnFormat && !btnFormat._wired) {
+      btnFormat._wired = true;
+      btnFormat.addEventListener('click', () => {
+        if (this.patchEditor) {
+          this.patchEditor.getAction('editor.action.formatDocument').run();
+        }
+      });
+    }
+
+    const btnCopy = document.getElementById('btn-patch-copy');
+    if (btnCopy && !btnCopy._wired) {
+      btnCopy._wired = true;
+      btnCopy.addEventListener('click', async () => {
+        if (this.patchEditor) {
+          const val = this.patchEditor.getValue();
+          await navigator.clipboard.writeText(val);
+          this.showToast('Patches copied to clipboard', 'success');
+        }
+      });
+    }
+
+    const btnUndo = document.getElementById('btn-patch-undo');
+    if (btnUndo && !btnUndo._wired) {
+      btnUndo._wired = true;
+      btnUndo.addEventListener('click', () => {
+        if (this.patchEditor) {
+          this.patchEditor.trigger('keyboard', 'undo', null);
+        }
+      });
+    }
+
+    const btnRedo = document.getElementById('btn-patch-redo');
+    if (btnRedo && !btnRedo._wired) {
+      btnRedo._wired = true;
+      btnRedo.addEventListener('click', () => {
+        if (this.patchEditor) {
+          this.patchEditor.trigger('keyboard', 'redo', null);
+        }
+      });
+    }
+
+    const btnClear = document.getElementById('btn-patch-clear');
+    if (btnClear && !btnClear._wired) {
+      btnClear._wired = true;
+      btnClear.addEventListener('click', () => {
+        if (this.patchEditor) {
+          this.patchEditor.setValue('[]');
+          this.showToast('Patch cleared (Right side reset)', 'info');
+        }
+      });
+    }
+
+    // Refresh Lucide icons for the new toolbar
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    // Enable undo/redo buttons (they are disabled in HTML by default to match main toolbar style)
+    if (btnUndo) btnUndo.disabled = false;
+    if (btnRedo) btnRedo.disabled = false;
+  },
+
+  /**
+   * Initialize toolbars for Original and Modified panes in Compare Mode
+   */
+  initDiffPanelToolbars() {
+    if (!this.diffEditor || !window.EditorToolbar) return;
+
+    const originalToolbarContainer = document.getElementById('diff-original-toolbar');
+    const modifiedToolbarContainer = document.getElementById('diff-modified-toolbar');
+
+    if (originalToolbarContainer && !originalToolbarContainer._wired) {
+      originalToolbarContainer._wired = true;
+      const originalEditor = this.diffEditor.getOriginalEditor();
+      const wrapper = this.createMonacoWrapper(originalEditor, 'original');
+      const toolbar = new EditorToolbar(originalToolbarContainer, wrapper);
+
+      // Remove unwanted buttons for compare view
+      const tabs = toolbar.element.querySelector('.mode-tabs-group');
+      if (tabs) tabs.remove();
+
+      const expandGroup = toolbar.element.querySelector('.btn-expand')?.parentElement;
+      if (expandGroup) expandGroup.remove();
+
+      const compactBtn = toolbar.element.querySelector('.btn-compact');
+      if (compactBtn) compactBtn.remove();
+
+      const autoformatBtn = toolbar.element.querySelector('.btn-autoformat');
+      if (autoformatBtn) autoformatBtn.remove();
+
+      // Clean up extra dividers
+      toolbar.element.querySelectorAll('.toolbar-divider').forEach((d) => {
+        if (!d.nextElementSibling || d.nextElementSibling.classList.contains('toolbar-divider')) {
+          d.remove();
+        }
+      });
+    }
+
+    if (modifiedToolbarContainer && !modifiedToolbarContainer._wired) {
+      modifiedToolbarContainer._wired = true;
+      const modifiedEditor = this.diffEditor.getModifiedEditor();
+      const wrapper = this.createMonacoWrapper(modifiedEditor, 'modified');
+      const toolbar = new EditorToolbar(modifiedToolbarContainer, wrapper);
+
+      // Remove unwanted buttons for compare view
+      const tabs = toolbar.element.querySelector('.mode-tabs-group');
+      if (tabs) tabs.remove();
+
+      const expandGroup = toolbar.element.querySelector('.btn-expand')?.parentElement;
+      if (expandGroup) expandGroup.remove();
+
+      const compactBtn = toolbar.element.querySelector('.btn-compact');
+      if (compactBtn) compactBtn.remove();
+
+      const autoformatBtn = toolbar.element.querySelector('.btn-autoformat');
+      if (autoformatBtn) autoformatBtn.remove();
+
+      // Clean up extra dividers
+      toolbar.element.querySelectorAll('.toolbar-divider').forEach((d) => {
+        if (!d.nextElementSibling || d.nextElementSibling.classList.contains('toolbar-divider')) {
+          d.remove();
+        }
+      });
+    }
+  },
+
+  /**
+   * Create a wrapper that matches EditorToolbar requirements for a raw Monaco editor
+   */
+  createMonacoWrapper(monacoEditor, id) {
+    return {
+      id: id,
+      editor: monacoEditor,
+      format: () => monacoEditor.getAction('editor.action.formatDocument').run(),
+      compact: () => {
+        try {
+          const val = monacoEditor.getValue();
+          const json = JSON.parse(val);
+          monacoEditor.setValue(JSON.stringify(json));
+        } catch (e) {
+          this.showToast('Invalid JSON', 'error');
+        }
+      },
+      undo: () => monacoEditor.trigger('keyboard', 'undo', null),
+      redo: () => monacoEditor.trigger('keyboard', 'redo', null),
+      copyToClipboard: async () => {
+        await navigator.clipboard.writeText(monacoEditor.getValue());
+        this.showToast('Copied to clipboard', 'success');
+      },
+      confirmClear: () => monacoEditor.setValue('{}'),
+      switchMode: () => {}, // No-op for diff panels
+      expandAll: () => monacoEditor.trigger('anyString', 'editor.unfoldAll'),
+      collapseAll: () => monacoEditor.trigger('anyString', 'editor.foldAll'),
+      toggleAutoFormat: () => {},
+      updateUndoRedo: () => {},
+      validate: () => {},
+    };
   },
 
   updateDiffSummary() {
@@ -473,6 +751,28 @@ const App = {
     const summaryContainer = document.getElementById('diff-summary');
     if (summaryContainer) {
       summaryContainer.innerHTML = diffHtml;
+    }
+
+    // Sync JSON Patch
+    if (this.patchEditor && !this.isApplyingPatch) {
+      try {
+        const obj1 = JSON.parse(original);
+        const obj2 = JSON.parse(modified);
+
+        if (window.DiffUtils) {
+          const patch = DiffUtils.generateJsonPatch(obj1, obj2);
+          const patchStr = JSON.stringify(patch, null, 2);
+
+          // Avoid overwriting while user is typing or if content is same
+          if (this.patchEditor.getValue() !== patchStr && !this.patchEditor.hasWidgetFocus()) {
+            this.isApplyingPatch = true;
+            this.patchEditor.setValue(patchStr);
+            this.isApplyingPatch = false;
+          }
+        }
+      } catch (e) {
+        // Error parsing JSON, ignore patch sync
+      }
     }
   },
 
@@ -532,7 +832,8 @@ const App = {
    */
   runQuery() {
     const query = document.getElementById('query-input').value;
-    const engine = document.querySelector('input[name="query-engine"]:checked')?.value || 'jsonpath';
+    const engine =
+      document.querySelector('input[name="query-engine"]:checked')?.value || 'jsonpath';
     const dataStr = this.queryInputEditor ? this.queryInputEditor.getValue() : '{}';
 
     try {
@@ -562,7 +863,6 @@ const App = {
       }
     }
   },
-
 
   /**
    * Update theme for all editors
@@ -694,13 +994,6 @@ const App = {
   },
 
   updatePathDisplay(jsPath, JSONPointer) {
-    // Find existing global or delegate.
-    // We removed global status bar from index.html (implied by "independent status bars").
-    // But App.js had `updatePathDisplay` targeting `#status-path`.
-    // Now each editor has its own status bar.
-    // The `JsonEditor.updateStatusBar` handles parsing info.
-    // But `TextEditor` and `TreeView` call `App.updatePathDisplay` for the path (cursor/click).
-    // Pass this back to the active editor's status bar.
 
     if (this.activeEditor && this.activeEditor.statusBar) {
       const pathEl = this.activeEditor.statusBar.querySelector('.status-path');
@@ -715,7 +1008,6 @@ const App = {
                     <span class="path-separator"> | </span>
                     <span class="path-display" title="Click to copy JSONPointer">JSONPointer: <code>${JSONPointer}</code></span>
                 `;
-        // Add copy listeners... (simplified for brevity, can reuse logic)
         pathEl.querySelectorAll('.path-display').forEach((el) => {
           el.onclick = () => {
             const code = el.querySelector('code').textContent;
@@ -727,10 +1019,8 @@ const App = {
     }
   },
 
-  // We need to implement onContentChange if TextEditor calls it?
-  // JsonEditor handles it internally now.
+
   onContentChange() {
-    // No-op or global sync logic if needed
   },
 
   showToast(message, type = 'info') {
@@ -748,15 +1038,17 @@ const App = {
    */
   getWorkspaceState() {
     const state = {
-      m: document.querySelector('.header-actions .btn.active')?.id.replace('btn-mode-', '') || 'normal', // global mode
+      m:
+        document.querySelector('.header-actions .btn.active')?.id.replace('btn-mode-', '') ||
+        'normal', // global mode
       l: { c: this.editors[0].getValue(), m: this.editors[0].mode },
-      r: { c: this.editors[1].getValue(), m: this.editors[1].mode }
+      r: { c: this.editors[1].getValue(), m: this.editors[1].mode },
     };
-    
+
     if (state.m === 'query') {
-       const queryInput = document.getElementById('query-input');
-       const engine = document.querySelector('input[name="query-engine"]:checked');
-       if (queryInput) state.q = { i: queryInput.value, e: engine ? engine.value : 'jsonpath' };
+      const queryInput = document.getElementById('query-input');
+      const engine = document.querySelector('input[name="query-engine"]:checked');
+      if (queryInput) state.q = { i: queryInput.value, e: engine ? engine.value : 'jsonpath' };
     }
     return state;
   },
@@ -766,39 +1058,41 @@ const App = {
    */
   loadWorkspaceState(state) {
     if (!state || typeof state !== 'object') return;
-    
+
     // 1. Restore contents and modes
     if (state.l) {
-        this.editors[0].setValue(state.l.c || '{}');
-        if (state.l.m) this.editors[0].switchMode(state.l.m);
+      this.editors[0].setValue(state.l.c || '{}');
+      if (state.l.m) this.editors[0].switchMode(state.l.m);
     }
     if (state.r) {
-        this.editors[1].setValue(state.r.c || '{}');
-        if (state.r.m) this.editors[1].switchMode(state.r.m);
+      this.editors[1].setValue(state.r.c || '{}');
+      if (state.r.m) this.editors[1].switchMode(state.r.m);
     }
 
     // 2. Restore global mode
     if (state.m) {
-        this.switchGlobalMode(state.m);
+      this.switchGlobalMode(state.m);
     }
 
     // 3. Restore query state
     if (state.m === 'query' && state.q) {
-        const queryInput = document.getElementById('query-input');
-        if (queryInput) queryInput.value = state.q.i || '';
-        
-        const engineRadio = document.querySelector(`input[name="query-engine"][value="${state.q.e}"]`);
-        if (engineRadio) engineRadio.checked = true;
-        
-        // Populate input editor internally
-        if (this.queryInputEditor) {
-            this.queryInputEditor.setValue(state.l?.c || '{}');
-        }
-        
-        // Execute query
-        setTimeout(() => this.runQuery(), 100);
+      const queryInput = document.getElementById('query-input');
+      if (queryInput) queryInput.value = state.q.i || '';
+
+      const engineRadio = document.querySelector(
+        `input[name="query-engine"][value="${state.q.e}"]`
+      );
+      if (engineRadio) engineRadio.checked = true;
+
+      // Populate input editor internally
+      if (this.queryInputEditor) {
+        this.queryInputEditor.setValue(state.l?.c || '{}');
+      }
+
+      // Execute query
+      setTimeout(() => this.runQuery(), 100);
     }
-  }
+  },
 };
 
 document.addEventListener('DOMContentLoaded', () => {
