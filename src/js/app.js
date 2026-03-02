@@ -23,7 +23,26 @@ const App = {
     // Create Editors (Default)
     await this.createEditors(container);
 
-    // Initialize other components (Global listeners if any)
+    // Check for shared snippet
+    if (window.location.hash.startsWith('#share=')) {
+        const payload = window.location.hash.substring(7); // Remove '#share='
+        if (window.ShareUtils && window.App) {
+            try {
+                const stateStr = await ShareUtils.decompress(payload);
+                const state = JSON.parse(stateStr);
+                
+                // Directly load the parsed workspace object
+                this.loadWorkspaceState(state);
+                
+                App.showToast('Shared workspace loaded successfully!', 'success');
+                // Clean up URL to avoid reloading later
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+            } catch (e) {
+                console.error("Failed to load shared workspace", e);
+                App.showToast('Failed to load shared workspace: ' + e.message, 'error');
+            }
+        }
+    }
 
     console.log('JSON Editor initialized');
   },
@@ -188,6 +207,20 @@ const App = {
 
     document.getElementById('btn-theme')?.addEventListener('click', () => {
       Theme.toggle();
+    });
+
+    document.getElementById('btn-share-global')?.addEventListener('click', async () => {
+        if (window.ShareUtils) {
+            try {
+                const state = this.getWorkspaceState();
+                const url = await ShareUtils.generateShareUrl(JSON.stringify(state));
+                await navigator.clipboard.writeText(url);
+                this.showToast('Workspace URL copied to clipboard!', 'success');
+            } catch (e) {
+                console.error('Error generating share URL:', e);
+                this.showToast('Error creating snippet: ' + e.message, 'error');
+            }
+        }
     });
 
     // Global Keyboard Shortcuts
@@ -709,6 +742,63 @@ const App = {
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);
   },
+
+  /**
+   * Serialize the entire workspace into a compact state object
+   */
+  getWorkspaceState() {
+    const state = {
+      m: document.querySelector('.header-actions .btn.active')?.id.replace('btn-mode-', '') || 'normal', // global mode
+      l: { c: this.editors[0].getValue(), m: this.editors[0].mode },
+      r: { c: this.editors[1].getValue(), m: this.editors[1].mode }
+    };
+    
+    if (state.m === 'query') {
+       const queryInput = document.getElementById('query-input');
+       const engine = document.querySelector('input[name="query-engine"]:checked');
+       if (queryInput) state.q = { i: queryInput.value, e: engine ? engine.value : 'jsonpath' };
+    }
+    return state;
+  },
+
+  /**
+   * Restore the workspace from a state object
+   */
+  loadWorkspaceState(state) {
+    if (!state || typeof state !== 'object') return;
+    
+    // 1. Restore contents and modes
+    if (state.l) {
+        this.editors[0].setValue(state.l.c || '{}');
+        if (state.l.m) this.editors[0].switchMode(state.l.m);
+    }
+    if (state.r) {
+        this.editors[1].setValue(state.r.c || '{}');
+        if (state.r.m) this.editors[1].switchMode(state.r.m);
+    }
+
+    // 2. Restore global mode
+    if (state.m) {
+        this.switchGlobalMode(state.m);
+    }
+
+    // 3. Restore query state
+    if (state.m === 'query' && state.q) {
+        const queryInput = document.getElementById('query-input');
+        if (queryInput) queryInput.value = state.q.i || '';
+        
+        const engineRadio = document.querySelector(`input[name="query-engine"][value="${state.q.e}"]`);
+        if (engineRadio) engineRadio.checked = true;
+        
+        // Populate input editor internally
+        if (this.queryInputEditor) {
+            this.queryInputEditor.setValue(state.l?.c || '{}');
+        }
+        
+        // Execute query
+        setTimeout(() => this.runQuery(), 100);
+    }
+  }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
