@@ -19,7 +19,9 @@ const Theme = {
 
     // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      const currentStored = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.APP_THEME) : null;
+      const currentStored = window.StorageUtils
+        ? StorageUtils.load(StorageUtils.KEYS.APP_THEME)
+        : null;
       if (!currentStored) {
         this.set(e.matches ? 'dark' : 'light');
       }

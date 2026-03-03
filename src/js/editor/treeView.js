@@ -106,18 +106,18 @@ class TreeView {
     header.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       const jsPath = this.getJsPath(currentPathArray);
       const jsonPointer = this.getJsonPointer(currentPathArray);
-      
+
       this.showContextMenu(e.clientX, e.clientY, {
         jsPath,
         jsonPointer,
         value,
         key,
-        pathArray: currentPathArray
+        pathArray: currentPathArray,
       });
-      
+
       this.container
         .querySelectorAll('.tree-node-header.selected')
         .forEach((el) => el.classList.remove('selected'));
@@ -315,51 +315,72 @@ class TreeView {
     };
 
     // --- Menu Items ---
-    
+
     // 1. Copy Key (if not root)
     if (data.key !== null && data.key !== undefined && data.key !== '') {
-      menu.appendChild(createItem('Copy Key', 'copy', () => copyToClipboard(String(data.key), 'Key copied')));
+      menu.appendChild(
+        createItem('Copy Key', 'copy', () => copyToClipboard(String(data.key), 'Key copied'))
+      );
     }
-    
+
     // 2. Copy Value / Content
-    const valueString = typeof data.value === 'object' ? JSON.stringify(data.value, null, 2) : String(data.value);
+    const valueString =
+      typeof data.value === 'object' ? JSON.stringify(data.value, null, 2) : String(data.value);
     const valueLabel = typeof data.value === 'object' ? 'Copy Content (JSON)' : 'Copy Value';
-    menu.appendChild(createItem(valueLabel, 'copy', () => copyToClipboard(valueString, 'Content copied')));
-    
+    menu.appendChild(
+      createItem(valueLabel, 'copy', () => copyToClipboard(valueString, 'Content copied'))
+    );
+
     menu.appendChild(createDivider());
 
     // 3. Copy Paths
-    menu.appendChild(createItem('Copy JS Path', 'code', () => copyToClipboard(data.jsPath, 'JS Path copied')));
-    menu.appendChild(createItem('Copy JSON Pointer', 'link', () => copyToClipboard(data.jsonPointer, 'JSON Pointer copied')));
+    menu.appendChild(
+      createItem('Copy JS Path', 'code', () => copyToClipboard(data.jsPath, 'JS Path copied'))
+    );
+    menu.appendChild(
+      createItem('Copy JSON Pointer', 'link', () =>
+        copyToClipboard(data.jsonPointer, 'JSON Pointer copied')
+      )
+    );
 
     menu.appendChild(createDivider());
 
     // 4. Extract (Replace content with extracted JSON)
     if (typeof data.value === 'object') {
-      menu.appendChild(createItem('Extract (Replace content)', 'external-link', () => {
-        if (window.App && this.container) {
-          const editorPanel = this.container.closest('.editor-instance');
-          if (editorPanel) {
-             const instance = App.editors.find(e => e.wrapper === editorPanel);
-             if (instance) {
-               instance.setValue(valueString);
-               App.showToast('Extracted JSON into editor', 'success');
-             }
+      menu.appendChild(
+        createItem('Extract (Replace content)', 'external-link', () => {
+          if (window.App && this.container) {
+            const editorPanel = this.container.closest('.editor-instance');
+            if (editorPanel) {
+              const instance = App.editors.find((e) => e.wrapper === editorPanel);
+              if (instance) {
+                instance.setValue(valueString);
+                App.showToast('Extracted JSON into editor', 'success');
+              }
+            }
+          } else {
+            copyToClipboard(valueString, 'Extracted content copied');
           }
-        } else {
-          copyToClipboard(valueString, 'Extracted content copied');
-        }
-      }));
+        })
+      );
     }
 
     // 5. Remove Node
     // Removing requires updating the actual JSON text and causing a re-render.
     // It's safest to mutate the parsed object and text editor if in sync, but here we can just delete from this.data and re-render.
     // However, to sync with Monaco text editor, we need to pass the updated JSON up.
-    if (data.pathArray.length > 0) { // Don't remove root
-       menu.appendChild(createItem('Remove Element', 'trash-2', () => {
-         this.removeNodeAtPath(data.pathArray);
-       }, true));
+    if (data.pathArray.length > 0) {
+      // Don't remove root
+      menu.appendChild(
+        createItem(
+          'Remove Element',
+          'trash-2',
+          () => {
+            this.removeNodeAtPath(data.pathArray);
+          },
+          true
+        )
+      );
     }
 
     document.body.appendChild(menu);
@@ -388,36 +409,36 @@ class TreeView {
 
   removeNodeAtPath(pathArray) {
     if (!pathArray || pathArray.length === 0) return;
-    
+
     // Deep clone data to avoid direct mutation issues, or mutate directly
     // Let's mutate directly for simplicity
     let current = this.data;
     for (let i = 0; i < pathArray.length - 1; i++) {
       current = current[pathArray[i]];
     }
-    
+
     const lastKey = pathArray[pathArray.length - 1];
-    
+
     if (Array.isArray(current)) {
       current.splice(Number(lastKey), 1);
     } else {
       delete current[lastKey];
     }
-    
+
     // Re-render tree
     this.render();
-    
+
     // Sync with TextEditor if possible
     // We dispatch a custom event or check for global App
     if (window.App && this.container) {
       // Hacky way to find parent JsonEditor instance to update its text value
       const editorPanel = this.container.closest('.editor-instance');
       if (editorPanel) {
-         // App.editors array holds instances
-         const instance = App.editors.find(e => e.wrapper === editorPanel);
-         if (instance) {
-           instance.setValue(JSON.stringify(this.data, null, 2));
-         }
+        // App.editors array holds instances
+        const instance = App.editors.find((e) => e.wrapper === editorPanel);
+        if (instance) {
+          instance.setValue(JSON.stringify(this.data, null, 2));
+        }
       }
     }
   }

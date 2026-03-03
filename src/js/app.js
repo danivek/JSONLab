@@ -25,23 +25,23 @@ const App = {
 
     // Check for shared snippet
     if (window.location.hash.startsWith('#share=')) {
-        const payload = window.location.hash.substring(7); // Remove '#share='
-        if (window.ShareUtils && window.App) {
-            try {
-                const stateStr = await ShareUtils.decompress(payload);
-                const state = JSON.parse(stateStr);
-                
-                // Directly load the parsed workspace object
-                this.loadWorkspaceState(state);
-                
-                App.showToast('Shared workspace loaded successfully!', 'success');
-                // Clean up URL to avoid reloading later
-                history.replaceState(null, '', window.location.pathname + window.location.search);
-            } catch (e) {
-                console.error("Failed to load shared workspace", e);
-                App.showToast('Failed to load shared workspace: ' + e.message, 'error');
-            }
+      const payload = window.location.hash.substring(7); // Remove '#share='
+      if (window.ShareUtils && window.App) {
+        try {
+          const stateStr = await ShareUtils.decompress(payload);
+          const state = JSON.parse(stateStr);
+
+          // Directly load the parsed workspace object
+          this.loadWorkspaceState(state);
+
+          App.showToast('Shared workspace loaded successfully!', 'success');
+          // Clean up URL to avoid reloading later
+          history.replaceState(null, '', window.location.pathname + window.location.search);
+        } catch (e) {
+          console.error('Failed to load shared workspace', e);
+          App.showToast('Failed to load shared workspace: ' + e.message, 'error');
         }
+      }
     }
 
     console.log('JSON Editor initialized');
@@ -89,11 +89,15 @@ const App = {
 
     // Setup default content ONLY if no saved content exists
     if (window.StorageUtils) {
-      const leftSaved = await StorageUtils.loadFromIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + 'left');
+      const leftSaved = await StorageUtils.loadFromIndexedDB(
+        StorageUtils.KEYS.WORKSPACE_CONTENT + 'left'
+      );
       if (!leftSaved) {
         leftEditor.setValue(TextEditor.getDefaultJson());
         // Sync to right only if both are empty
-        const rightSaved = await StorageUtils.loadFromIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + 'right');
+        const rightSaved = await StorageUtils.loadFromIndexedDB(
+          StorageUtils.KEYS.WORKSPACE_CONTENT + 'right'
+        );
         if (!rightSaved) {
           rightEditor.setValue(leftEditor.getValue());
         }
@@ -101,13 +105,9 @@ const App = {
     }
 
     // --- Custom Features --- //
-
-    // Add "Copy to Right" arrow to Left Editor Primary Toolbar
-    // Position: Right (Extreme Right)
     this.copyToRightBtn = leftEditor.addPrimaryButton({
       icon: 'arrow-right',
       title: 'Copy content to Right Editor',
-      // label: 'To Right', // Removed label per "keep arrow icons" request
       className: 'btn-copy-right',
       position: 'right', // Goes to right group
       onClick: () => {
@@ -117,13 +117,10 @@ const App = {
       },
     });
 
-    // Add "Copy to Left" arrow to Right Editor Primary Toolbar
-    // Position: Left (Extreme Left)
     rightEditor.addPrimaryButton({
       icon: 'arrow-left',
       title: 'Copy content to Left Editor',
-      // label: 'To Left',
-      position: 'left', // Goes to left group (prepended)
+      position: 'left',
       onClick: () => {
         const content = rightEditor.getValue();
         leftEditor.setValue(content);
@@ -132,7 +129,9 @@ const App = {
     });
 
     // Default View: Load from storage or default to normal
-    const savedGlobalMode = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.GLOBAL_VIEW_MODE, 'normal') : 'normal';
+    const savedGlobalMode = window.StorageUtils
+      ? StorageUtils.load(StorageUtils.KEYS.GLOBAL_VIEW_MODE, 'normal')
+      : 'normal';
     this.switchGlobalMode(savedGlobalMode);
 
     // Initialize Split Resizer
@@ -144,7 +143,6 @@ const App = {
    */
   setActiveEditor(editor) {
     this.activeEditor = editor;
-    // Visual feedback? maybe border highlight?
     document
       .querySelectorAll('.editor-wrapper')
       .forEach((el) => el.classList.remove('active-wrapper'));
@@ -210,17 +208,17 @@ const App = {
     });
 
     document.getElementById('btn-share-global')?.addEventListener('click', async () => {
-        if (window.ShareUtils) {
-            try {
-                const state = this.getWorkspaceState();
-                const url = await ShareUtils.generateShareUrl(JSON.stringify(state));
-                await navigator.clipboard.writeText(url);
-                this.showToast('Workspace URL copied to clipboard!', 'success');
-            } catch (e) {
-                console.error('Error generating share URL:', e);
-                this.showToast('Error creating snippet: ' + e.message, 'error');
-            }
+      if (window.ShareUtils) {
+        try {
+          const state = this.getWorkspaceState();
+          const url = await ShareUtils.generateShareUrl(JSON.stringify(state));
+          await navigator.clipboard.writeText(url);
+          this.showToast('Workspace URL copied to clipboard!', 'success');
+        } catch (e) {
+          console.error('Error generating share URL:', e);
+          this.showToast('Error creating snippet: ' + e.message, 'error');
         }
+      }
     });
 
     // Global Keyboard Shortcuts
@@ -286,7 +284,7 @@ const App = {
     }
 
     // Apply result is now live on input change
-    
+
     // Shortcuts Popover
     this.initShortcutsPopover();
   },
@@ -302,7 +300,7 @@ const App = {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       popover.classList.toggle('hidden');
-      
+
       // Re-initialize icons if they haven't been transformed yet or to be safe
       if (window.lucide && !popover.classList.contains('hidden')) {
         lucide.createIcons({ root: popover });
@@ -310,7 +308,11 @@ const App = {
     });
 
     document.addEventListener('click', (e) => {
-      if (!popover.classList.contains('hidden') && !popover.contains(e.target) && e.target !== btn) {
+      if (
+        !popover.classList.contains('hidden') &&
+        !popover.contains(e.target) &&
+        e.target !== btn
+      ) {
         popover.classList.add('hidden');
       }
     });
@@ -522,8 +524,6 @@ const App = {
         ? this.activeEditor.getValue()
         : this.editors[0].getValue();
       this.queryInputEditor.setValue(currentContent);
-      // Also run query if input has value?
-      // this.runQuery();
     }
   },
 
@@ -532,7 +532,8 @@ const App = {
    */
   runQuery() {
     const query = document.getElementById('query-input').value;
-    const engine = document.querySelector('input[name="query-engine"]:checked')?.value || 'jsonpath';
+    const engine =
+      document.querySelector('input[name="query-engine"]:checked')?.value || 'jsonpath';
     const dataStr = this.queryInputEditor ? this.queryInputEditor.getValue() : '{}';
 
     try {
@@ -562,7 +563,6 @@ const App = {
       }
     }
   },
-
 
   /**
    * Update theme for all editors
@@ -631,8 +631,6 @@ const App = {
       const rightEditor = this.editors.find((e) => e.id === 'right');
       if (rightEditor) {
         rightEditor.setValue(valueToSet);
-        // Ensure it is in Tree mode? It should be by default config.
-        // rightEditor.switchMode('tree');
       }
     }
 
@@ -694,14 +692,6 @@ const App = {
   },
 
   updatePathDisplay(jsPath, JSONPointer) {
-    // Find existing global or delegate.
-    // We removed global status bar from index.html (implied by "independent status bars").
-    // But App.js had `updatePathDisplay` targeting `#status-path`.
-    // Now each editor has its own status bar.
-    // The `JsonEditor.updateStatusBar` handles parsing info.
-    // But `TextEditor` and `TreeView` call `App.updatePathDisplay` for the path (cursor/click).
-    // Pass this back to the active editor's status bar.
-
     if (this.activeEditor && this.activeEditor.statusBar) {
       const pathEl = this.activeEditor.statusBar.querySelector('.status-path');
       if (pathEl) {
@@ -715,7 +705,7 @@ const App = {
                     <span class="path-separator"> | </span>
                     <span class="path-display" title="Click to copy JSONPointer">JSONPointer: <code>${JSONPointer}</code></span>
                 `;
-        // Add copy listeners... (simplified for brevity, can reuse logic)
+
         pathEl.querySelectorAll('.path-display').forEach((el) => {
           el.onclick = () => {
             const code = el.querySelector('code').textContent;
@@ -727,11 +717,7 @@ const App = {
     }
   },
 
-  // We need to implement onContentChange if TextEditor calls it?
-  // JsonEditor handles it internally now.
-  onContentChange() {
-    // No-op or global sync logic if needed
-  },
+  onContentChange() {},
 
   showToast(message, type = 'info') {
     const existing = document.querySelector('.toast');
@@ -748,15 +734,17 @@ const App = {
    */
   getWorkspaceState() {
     const state = {
-      m: document.querySelector('.header-actions .btn.active')?.id.replace('btn-mode-', '') || 'normal', // global mode
+      m:
+        document.querySelector('.header-actions .btn.active')?.id.replace('btn-mode-', '') ||
+        'normal', // global mode
       l: { c: this.editors[0].getValue(), m: this.editors[0].mode },
-      r: { c: this.editors[1].getValue(), m: this.editors[1].mode }
+      r: { c: this.editors[1].getValue(), m: this.editors[1].mode },
     };
-    
+
     if (state.m === 'query') {
-       const queryInput = document.getElementById('query-input');
-       const engine = document.querySelector('input[name="query-engine"]:checked');
-       if (queryInput) state.q = { i: queryInput.value, e: engine ? engine.value : 'jsonpath' };
+      const queryInput = document.getElementById('query-input');
+      const engine = document.querySelector('input[name="query-engine"]:checked');
+      if (queryInput) state.q = { i: queryInput.value, e: engine ? engine.value : 'jsonpath' };
     }
     return state;
   },
@@ -766,39 +754,41 @@ const App = {
    */
   loadWorkspaceState(state) {
     if (!state || typeof state !== 'object') return;
-    
+
     // 1. Restore contents and modes
     if (state.l) {
-        this.editors[0].setValue(state.l.c || '{}');
-        if (state.l.m) this.editors[0].switchMode(state.l.m);
+      this.editors[0].setValue(state.l.c || '{}');
+      if (state.l.m) this.editors[0].switchMode(state.l.m);
     }
     if (state.r) {
-        this.editors[1].setValue(state.r.c || '{}');
-        if (state.r.m) this.editors[1].switchMode(state.r.m);
+      this.editors[1].setValue(state.r.c || '{}');
+      if (state.r.m) this.editors[1].switchMode(state.r.m);
     }
 
     // 2. Restore global mode
     if (state.m) {
-        this.switchGlobalMode(state.m);
+      this.switchGlobalMode(state.m);
     }
 
     // 3. Restore query state
     if (state.m === 'query' && state.q) {
-        const queryInput = document.getElementById('query-input');
-        if (queryInput) queryInput.value = state.q.i || '';
-        
-        const engineRadio = document.querySelector(`input[name="query-engine"][value="${state.q.e}"]`);
-        if (engineRadio) engineRadio.checked = true;
-        
-        // Populate input editor internally
-        if (this.queryInputEditor) {
-            this.queryInputEditor.setValue(state.l?.c || '{}');
-        }
-        
-        // Execute query
-        setTimeout(() => this.runQuery(), 100);
+      const queryInput = document.getElementById('query-input');
+      if (queryInput) queryInput.value = state.q.i || '';
+
+      const engineRadio = document.querySelector(
+        `input[name="query-engine"][value="${state.q.e}"]`
+      );
+      if (engineRadio) engineRadio.checked = true;
+
+      // Populate input editor internally
+      if (this.queryInputEditor) {
+        this.queryInputEditor.setValue(state.l?.c || '{}');
+      }
+
+      // Execute query
+      setTimeout(() => this.runQuery(), 100);
     }
-  }
+  },
 };
 
 document.addEventListener('DOMContentLoaded', () => {

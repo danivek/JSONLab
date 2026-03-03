@@ -28,10 +28,12 @@ export default [
         Theme: 'readonly',
         jsonrepair: 'readonly',
         require: 'readonly',
+        ShareUtils: 'readonly',
+        StorageUtils: 'readonly',
       },
     },
     rules: {
-    'no-console': 'off',
+      'no-console': 'off',
       'no-debugger': 'warn',
     },
   },

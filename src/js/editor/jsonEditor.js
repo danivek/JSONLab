@@ -7,9 +7,13 @@ class JsonEditor {
     this.id = id;
 
     // Load saved mode or use initial
-    const savedMode = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.WORKSPACE_MODE + this.id, initialMode) : initialMode;
+    const savedMode = window.StorageUtils
+      ? StorageUtils.load(StorageUtils.KEYS.WORKSPACE_MODE + this.id, initialMode)
+      : initialMode;
     this.mode = savedMode; // 'text', 'tree', 'table'
-    const savedAutoFormat = window.StorageUtils ? StorageUtils.load(StorageUtils.KEYS.WORKSPACE_AUTOFORMAT + this.id, 'false') === 'true' : false;
+    const savedAutoFormat = window.StorageUtils
+      ? StorageUtils.load(StorageUtils.KEYS.WORKSPACE_AUTOFORMAT + this.id, 'false') === 'true'
+      : false;
     this.autoFormatEnabled = savedAutoFormat;
     this.isFormatting = false;
     this.autoFormatTimer = null;
@@ -34,7 +38,7 @@ class JsonEditor {
     this.wrapper.appendChild(this.toolbarContainer);
     this.toolbar = new EditorToolbar(this.toolbarContainer, this);
     if (this.toolbar && this.toolbar.updateAutoFormatState) {
-        this.toolbar.updateAutoFormatState(this.autoFormatEnabled);
+      this.toolbar.updateAutoFormatState(this.autoFormatEnabled);
     }
 
     // 3. Main Content Area (Stack of panels)
@@ -280,7 +284,10 @@ class JsonEditor {
     // Load content from IndexedDB (async)
     let initialValue = '{}';
     if (window.StorageUtils) {
-      initialValue = await StorageUtils.loadFromIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + this.id, '{}');
+      initialValue = await StorageUtils.loadFromIndexedDB(
+        StorageUtils.KEYS.WORKSPACE_CONTENT + this.id,
+        '{}'
+      );
     }
 
     this.editor = monaco.editor.create(container, {
@@ -455,7 +462,7 @@ class JsonEditor {
 
     // Persist content to IndexedDB (Async)
     if (window.StorageUtils) {
-       StorageUtils.saveToIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + this.id, this.getValue());
+      StorageUtils.saveToIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + this.id, this.getValue());
     }
 
     if (this.autoFormatEnabled && this.mode === 'text' && this.editor) {
@@ -464,10 +471,11 @@ class JsonEditor {
         clearTimeout(this.autoFormatTimer);
         this.autoFormatTimer = setTimeout(() => {
           this.isFormatting = true;
-          this.editor.getAction('editor.action.formatDocument').run().finally(() => {
-           
-          });
-           this.isFormatting = false;
+          this.editor
+            .getAction('editor.action.formatDocument')
+            .run()
+            .finally(() => {});
+          this.isFormatting = false;
         }, 800);
       }
     }
@@ -528,7 +536,10 @@ class JsonEditor {
   toggleAutoFormat() {
     this.autoFormatEnabled = !this.autoFormatEnabled;
     if (window.StorageUtils) {
-      StorageUtils.save(StorageUtils.KEYS.WORKSPACE_AUTOFORMAT + this.id, this.autoFormatEnabled.toString());
+      StorageUtils.save(
+        StorageUtils.KEYS.WORKSPACE_AUTOFORMAT + this.id,
+        this.autoFormatEnabled.toString()
+      );
     }
     if (this.toolbar && this.toolbar.updateAutoFormatState) {
       this.toolbar.updateAutoFormatState(this.autoFormatEnabled);
