@@ -824,6 +824,13 @@ const App = {
         : this.editors[0].getValue();
       this.queryInputEditor.setValue(currentContent);
     }
+
+    // Wire up Apply button
+    const btnApply = document.getElementById('btn-query-apply');
+    if (btnApply && !btnApply._wired) {
+      btnApply._wired = true;
+      btnApply.onclick = () => this.applyQueryResult();
+    }
   },
 
   /**
@@ -846,12 +853,6 @@ const App = {
 
         if (this.queryOutputEditor) {
           this.queryOutputEditor.setValue(resultStr);
-
-          // Apply to main editor live (without toast)
-          const target = this.activeEditor || this.editors[0];
-          if (target) {
-            target.setValue(resultStr);
-          }
         }
       } else {
         if (this.queryOutputEditor) this.queryOutputEditor.setValue('// QueryUtils not loaded');
@@ -860,6 +861,34 @@ const App = {
       if (this.queryOutputEditor) {
         this.queryOutputEditor.setValue(`// Error: ${e.message}`);
       }
+    }
+  },
+
+  /**
+   * Apply Query Result to main editor
+   */
+  applyQueryResult() {
+    if (!this.queryOutputEditor) return;
+
+    const resultStr = this.queryOutputEditor.getValue();
+    if (!resultStr || resultStr.startsWith('// Error:')) {
+      this.showToast('Nothing to apply or query has errors', 'error');
+      return;
+    }
+
+    const target = this.activeEditor || this.editors[0];
+    if (target) {
+      target.setValue(resultStr);
+
+      // If we are in split mode and applied to left, sync to right if right is tree
+      if (target.id === 'left') {
+        const rightEditor = this.editors.find((e) => e.id === 'right');
+        if (rightEditor) {
+          rightEditor.setValue(resultStr);
+        }
+      }
+
+      this.showToast('Query result applied', 'success');
     }
   },
 

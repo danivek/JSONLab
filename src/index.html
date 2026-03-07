@@ -191,7 +191,13 @@
                         <div id="query-editor-input" class="monaco-container"></div>
                     </div>
                     <div class="query-pane">
-                        <div class="panel-header">Query Result (Preview)</div>
+                        <div class="panel-header">
+                            <span>Query Result (Preview)</span>
+                            <button id="btn-query-apply" class="btn btn-primary btn-sm"
+                                title="Apply result to main editor">
+                                <i data-lucide="check" class="icon"></i> Apply to Editor
+                            </button>
+                        </div>
                         <div id="query-editor-output" class="monaco-container"></div>
                     </div>
                 </div>
