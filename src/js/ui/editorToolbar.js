@@ -35,11 +35,6 @@ class EditorToolbar {
                 <button class="btn btn-secondary btn-icon btn-collapse" title="Collapse All">
                     <i data-lucide="list-chevrons-down-up" class="icon"></i>
                 </button>
-            </div>
-            
-            <div class="toolbar-divider"></div>
-            
-            <div class="toolbar-group">
                 <button class="btn btn-secondary btn-icon btn-format" title="Format JSON (Ctrl+Shift+F)">
                     <i data-lucide="align-left" class="icon"></i>
                 </button>
@@ -48,6 +43,17 @@ class EditorToolbar {
                 </button>
                 <button class="btn btn-secondary btn-icon btn-autoformat" title="Autoformat on change">
                     <i data-lucide="wand-2" class="icon"></i>
+                </button>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="toolbar-group">
+                <button class="btn btn-secondary btn-icon btn-sort" title="Sort JSON Keys Alphabetically">
+                    <i data-lucide="arrow-down-az" class="icon"></i>
+                </button>
+                <button class="btn btn-secondary btn-icon btn-sort-desc" title="Sort JSON Keys Descending">
+                    <i data-lucide="arrow-up-za" class="icon"></i>
                 </button>
             </div>
 
@@ -91,6 +97,8 @@ class EditorToolbar {
     on('.btn-format', () => this.editor.format());
     on('.btn-compact', () => this.editor.compact());
     on('.btn-autoformat', () => this.editor.toggleAutoFormat());
+    on('.btn-sort', () => this.editor.sort(false));
+    on('.btn-sort-desc', () => this.editor.sort(true));
     on('.btn-validate', () => this.editor.validate());
     on('.btn-repair', () => this.editor.repair());
     on('.btn-expand', () => this.editor.expandAll());

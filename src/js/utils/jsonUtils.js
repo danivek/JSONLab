@@ -244,19 +244,24 @@ const JsonUtils = {
   },
 
   /**
-   * Sort object keys alphabetically
+   * Sort object keys alphabetically (deep)
    */
-  sortKeys(obj) {
+  sortKeys(obj, descending = false) {
     if (Array.isArray(obj)) {
-      return obj.map((item) => this.sortKeys(item));
+      return obj.map((item) => this.sortKeys(item, descending));
     }
 
     if (typeof obj === 'object' && obj !== null) {
       const sorted = {};
       Object.keys(obj)
-        .sort()
+        .sort((a, b) => {
+          if (descending) {
+            return b.localeCompare(a);
+          }
+          return a.localeCompare(b);
+        })
         .forEach((key) => {
-          sorted[key] = this.sortKeys(obj[key]);
+          sorted[key] = this.sortKeys(obj[key], descending);
         });
       return sorted;
     }

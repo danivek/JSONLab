@@ -591,6 +591,22 @@ class JsonEditor {
     }
   }
 
+  sort(descending = false) {
+    const content = this.getValue();
+    if (window.JsonUtils) {
+      try {
+        const parsed = JSON.parse(content);
+        const sorted = JsonUtils.sortKeys(parsed, descending);
+        this.setValue(JSON.stringify(sorted, null, 2));
+        const directionStr = descending ? 'descending' : 'alphabetically';
+        if (window.App) App.showToast(`JSON keys sorted ${directionStr}`, 'success');
+      } catch (e) {
+        console.error('Sort error:', e);
+        if (window.App) App.showToast('Cannot sort: ' + e.message, 'error');
+      }
+    }
+  }
+
   expandAll() {
     if (this.mode === 'text' && this.editor) {
       this.editor.trigger('anyString', 'editor.unfoldAll');
