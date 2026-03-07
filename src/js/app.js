@@ -263,6 +263,9 @@ const App = {
     document
       .getElementById('btn-mode-query')
       ?.addEventListener('click', () => this.switchGlobalMode('query'));
+    document
+      .getElementById('btn-mode-schema')
+      ?.addEventListener('click', () => this.switchGlobalMode('schema'));
 
     // Query Run
     // Auto-run on input with debounce
@@ -345,6 +348,8 @@ const App = {
     editorsContainer.style.display = 'none';
     document.getElementById('compare-panel').style.display = 'none';
     document.getElementById('query-panel').style.display = 'none';
+    const schemaPanel = document.getElementById('schema-panel');
+    if (schemaPanel) schemaPanel.style.display = 'none';
 
     const splitter = document.getElementById('editors-splitter');
     if (splitter) splitter.style.display = 'none';
@@ -374,6 +379,10 @@ const App = {
     } else if (mode === 'query') {
       document.getElementById('query-panel').style.display = 'flex';
       this.initQuery();
+    } else if (mode === 'schema') {
+      const schemaPanel = document.getElementById('schema-panel');
+      if (schemaPanel) schemaPanel.style.display = 'flex';
+      this.initSchema();
     }
   },
 
@@ -1115,6 +1124,177 @@ const App = {
 
       // Execute query
       setTimeout(() => this.runQuery(), 100);
+    }
+  },
+
+  updateSchemaErrorPanel(markers) {
+    const errorsListEl = document.getElementById('schema-errors-list');
+    if (!errorsListEl) return;
+
+    if (markers.length === 0) {
+      errorsListEl.innerHTML = `
+          <div class="schema-valid-msg" style="color: var(--color-success); display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> Document is valid against the schema.
+          </div>
+      `;
+      if (window.lucide) window.lucide.createIcons({ root: errorsListEl });
+    } else {
+      let html = '';
+      markers.forEach((err, idx) => {
+        const path = `Line ${err.startLineNumber}, Col ${err.startColumn}`;
+        html += `
+            <div class="schema-error-item" data-line="${err.startLineNumber}" data-col="${err.startColumn}" style="cursor: pointer;" title="Click to go to line">
+                <span class="schema-error-path">Location: ${path}</span>
+                <span class="schema-error-message">${err.message}</span>
+            </div>
+        `;
+      });
+      errorsListEl.innerHTML = html;
+      
+      // Add click listeners
+      const items = errorsListEl.querySelectorAll('.schema-error-item');
+      items.forEach(item => {
+        item.addEventListener('click', () => {
+          const line = parseInt(item.getAttribute('data-line'), 10);
+          const col = parseInt(item.getAttribute('data-col'), 10);
+          if (this.schemaDocEditor && !isNaN(line) && !isNaN(col)) {
+             this.schemaDocEditor.setPosition({ lineNumber: line, column: col });
+             this.schemaDocEditor.revealPositionInCenter({ lineNumber: line, column: col });
+             this.schemaDocEditor.focus();
+          }
+        });
+      });
+    }
+  },
+
+  /**
+   * Initialize Schema Mode
+   */
+  initSchema() {
+    const leftContent = this.editors[0].getValue();
+
+    if (!this.schemaDocEditor) {
+      const docContainer = document.getElementById('schema-editor-doc');
+      const schemaContainer = document.getElementById('schema-editor-schema');
+
+      if (docContainer && schemaContainer) {
+        const commonOptions = {
+          theme:
+            document.documentElement.getAttribute('data-theme') === 'dark'
+              ? 'json-dark'
+              : 'json-light',
+          automaticLayout: true,
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+        };
+
+        this.schemaDocEditor = monaco.editor.create(docContainer, {
+          ...commonOptions,
+          language: 'json',
+          readOnly: false, // Let user edit document to see validation
+          value: leftContent,
+        });
+
+        this.schemaDefEditor = monaco.editor.create(schemaContainer, {
+          ...commonOptions,
+          language: 'json',
+          value: '{\n  "$schema": "http://json-schema.org/draft-07/schema#"\n}',
+        });
+
+        // Document sync logic is now inside onDidChangeModelContent definition below.
+
+        // Listen to Monaco's built-in validation markers
+        if (!this._schemaMarkerListenerAdded) {
+          this._schemaMarkerListenerAdded = true;
+          monaco.editor.onDidChangeMarkers((uris) => {
+            const docUri = this.schemaDocEditor ? this.schemaDocEditor.getModel().uri.toString() : null;
+            if (docUri && uris.some(uri => uri.toString() === docUri)) {
+              const modelUri = this.schemaDocEditor.getModel().uri;
+              const markers = monaco.editor.getModelMarkers({ resource: modelUri });
+              this.updateSchemaErrorPanel(markers);
+            }
+          });
+        }
+
+        // Whenever schema editor changes, apply schema to Monaco Diagnostics
+        let validateTimer;
+        const validateSchemaAndDoc = () => {
+          const errorsListEl = document.getElementById('schema-errors-list');
+          if (!errorsListEl) return;
+
+          let schemaObj = null;
+
+          // Check Schema Validity
+          try {
+            const schemaText = this.schemaDefEditor.getValue();
+            schemaObj = JSON.parse(schemaText);
+            
+            // Just updating the options triggers Monaco's internal validation, which will fire onDidChangeMarkers
+            const modelUri = this.schemaDocEditor.getModel().uri.toString();
+            monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+              validate: true,
+              schemas: [
+                {
+                  uri: 'http://myschema/schema.json',
+                  fileMatch: [modelUri],
+                  schema: schemaObj,
+                },
+              ],
+            });
+          } catch (e) {
+            // Invalid JSON in schema
+            errorsListEl.innerHTML = `
+                      <div class="schema-error-item">
+                          <span class="schema-error-message">Invalid JSON Schema Definition: ${e.message}</span>
+                      </div>
+                  `;
+            return;
+          }
+        };
+
+        this.schemaDefEditor.onDidChangeModelContent(() => {
+          clearTimeout(validateTimer);
+          validateTimer = setTimeout(validateSchemaAndDoc, 300);
+        });
+
+        this.schemaDocEditor.onDidChangeModelContent(() => {
+          clearTimeout(validateTimer);
+          validateTimer = setTimeout(validateSchemaAndDoc, 300);
+
+          // Sync to left editor
+          const val = this.schemaDocEditor.getValue();
+          if (this.editors[0] && this.editors[0].getValue() !== val) {
+            this.editors[0].setValue(val);
+          }
+        });
+
+        // Initial setup
+        validateSchemaAndDoc();
+
+        // Generate schema button
+        const btnGenerate = document.getElementById('btn-schema-generate');
+        if (btnGenerate && !btnGenerate._wired) {
+          btnGenerate._wired = true;
+          btnGenerate.addEventListener('click', () => {
+            try {
+              const docObj = JSON.parse(this.schemaDocEditor.getValue());
+              if (window.SchemaUtils) {
+                const generated = window.SchemaUtils.generateSchema(docObj);
+                generated['$schema'] = 'http://json-schema.org/draft-07/schema#';
+                this.schemaDefEditor.setValue(JSON.stringify(generated, null, 2));
+                this.showToast('Schema generated successfully', 'success');
+              }
+            } catch (e) {
+              this.showToast('Invalid JSON document', 'error');
+            }
+          });
+        }
+      }
+    } else {
+      // Sync doc editor on revisit if changed elsewhere
+      if (this.schemaDocEditor.getValue() !== leftContent) {
+        this.schemaDocEditor.setValue(leftContent);
+      }
     }
   },
 };

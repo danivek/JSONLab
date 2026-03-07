@@ -49,6 +49,9 @@
                 <button id="btn-mode-query" class="btn btn-secondary" title="Query JSON">
                     <i data-lucide="search-code" class="icon"></i> Query
                 </button>
+                <button id="btn-mode-schema" class="btn btn-secondary" title="JSON Schema">
+                    <i data-lucide="file-check" class="icon"></i>JSON Schema
+                </button>
                 <div class="toolbar-divider"></div>
                 <button id="btn-share-global" class="btn btn-secondary" title="Share Workspace as URL Snippet">
                     <i data-lucide="share-2" class="icon"></i> Share
@@ -202,6 +205,41 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Schema Panel -->
+            <div id="schema-panel" class="editor-panel query-panel">
+                <div class="query-split-view" style="flex: 1;">
+                    <div class="query-pane" style="position: relative;">
+                        <div class="panel-header">JSON Document</div>
+                        <div id="schema-editor-doc" class="monaco-container"></div>
+                    </div>
+                    <div class="query-pane" style="position: relative;">
+                        <div class="panel-header">
+                            <span>JSON Schema</span>
+                            <button id="btn-schema-generate" class="btn btn-primary btn-sm"
+                                title="Generate schema from document">
+                                <i data-lucide="zap" class="icon"></i> Generate Schema
+                            </button>
+                        </div>
+                        <div id="schema-editor-schema" class="monaco-container"></div>
+                    </div>
+                </div>
+                <!-- Schema Validation Errors -->
+                <div id="schema-errors-container" class="diff-output"
+                    style="height: 150px; border-top: 1px solid var(--color-border); display: flex; flex-direction: column; padding: 0;">
+                    <div class="diff-summary-header"
+                        style="padding: 8px 12px; border-bottom: 1px solid var(--color-border); font-size: 13px; font-weight: 600; background: var(--color-bg-tertiary); display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i> Validation Results
+                    </div>
+                    <div id="schema-errors-list" style="flex: 1; overflow: auto; padding: var(--space-md);">
+                        <div class="schema-valid-msg"
+                            style="color: var(--color-success); display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> Document is valid
+                            against the schema.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <!-- footer -->
@@ -352,6 +390,7 @@
     <script type="module" src="js/utils/csvUtils.js"></script>
     <script type="module" src="js/utils/diffUtils.js"></script>
     <script type="module" src="js/utils/queryUtils.js"></script>
+    <script type="module" src="js/utils/schemaUtils.js"></script>
     <script type="module" src="js/utils/shareUtils.js"></script>
     <script type="module" src="js/editor/textEditor.js"></script>
     <script type="module" src="js/editor/treeView.js"></script>

@@ -733,6 +733,28 @@ body {
   background: rgba(239, 68, 68, 0.1);
 }
 
+/* Schema Errors Viewer */
+.schema-error-item {
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.schema-error-item:last-child {
+  border-bottom: none;
+}
+
+.schema-error-path {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.schema-error-message {
+  color: var(--color-error);
+}
+
 /* Query Panel */
 .query-panel {
   flex-direction: column;
