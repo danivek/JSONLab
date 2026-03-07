@@ -97,9 +97,13 @@
 }
 
 /* Reset & Base */
+.hidden {
+  display: none !important;
+}
+
 *,
-*::before,
-*::after {
+*::after,
+*::before {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -696,8 +700,19 @@ body {
   background: var(--color-text-muted);
 }
 
+.compare-toolbars .toolbar {
+  padding: 0 var(--space-md);
+  gap: var(--space-sm);
+  background: transparent;
+}
+
+.compare-toolbars .toolbar-divider {
+  margin: 0 4px;
+}
+
+
 .diff-output {
-  height: var(--diff-summary-height, 150px);
+  height: var(--diff-summary-height, 200px);
   min-height: 40px;
   max-height: 80vh;
   overflow: auto;

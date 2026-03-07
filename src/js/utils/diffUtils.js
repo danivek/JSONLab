@@ -13,6 +13,17 @@ const DiffUtils = {
   },
 
   /**
+   * Generate RFC 6902 JSON Patch array using fast-json-patch
+   */
+  generateJsonPatch(obj1, obj2) {
+    if (window.jsonpatch && window.jsonpatch.compare) {
+      return window.jsonpatch.compare(obj1, obj2);
+    }
+    console.warn('fast-json-patch library not loaded.');
+    return [];
+  },
+
+  /**
    * Recursive comparison
    */
   compareRecursive(obj1, obj2, path, diffs) {

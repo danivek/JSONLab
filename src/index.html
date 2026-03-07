@@ -78,15 +78,72 @@
 
             <!-- Compare Panel -->
             <div id="compare-panel" class="editor-panel compare-panel">
-                <div class="compare-header">
-                    <span>Original (Left)</span>
-                    <span>Modified (Right)</span>
+                <div class="compare-header"
+                    style="justify-content: flex-start; border-bottom: none; padding-bottom: 0;">
+                    <span id="label-original" style="text-align: left;">Original (Left)</span>
+                    <span id="label-modified" style="text-align: left;">Modified (Right)</span>
+                </div>
+                <div class="compare-toolbars"
+                    style="display: flex; justify-content: flex-start; background: var(--color-bg-secondary);">
+                    <div id="diff-original-toolbar" style="flex: none;"></div>
+                    <div id="diff-modified-toolbar" style="flex: 1;"></div>
                 </div>
                 <!-- Diff Editor -->
                 <div id="monaco-diff-container" class="monaco-container"></div>
                 <!-- Diff Summary (Restored) -->
                 <div id="diff-resize-handle" class="diff-resize-handle"></div>
-                <div id="diff-summary" class="diff-output"></div>
+                <div id="diff-summary-wrapper" class="diff-output"
+                    style="display: flex; flex-direction: column; padding: 0;">
+                    <div class="diff-summary-header"
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 4px 12px; border-bottom: 1px solid var(--color-border); font-size: 12px; font-weight: 500; color: var(--color-text-muted); flex-shrink: 0;">
+                        <div class="engine-radios diff-view-toggle">
+                            <label class="radio-label" style="padding: 2px 4px;">
+                                <input type="radio" name="diff-view" value="summary" checked>
+                                <span>Summary</span>
+                            </label>
+                            <label class="radio-label" style="padding: 2px 4px;">
+                                <input type="radio" name="diff-view" value="patch">
+                                <span>JSON Patch</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="diff-summary" style="flex: 1; overflow: auto; padding: var(--space-md);"></div>
+
+                    <!-- Patch Editor Toolbar (Standardized) -->
+                    <div id="diff-patch-toolbar" class="toolbar hidden"
+                        style="padding: 0 var(--space-lg); border-top: none; border-bottom: 1px solid var(--color-border); height: var(--toolbar-height); min-height: var(--toolbar-height);">
+                        <div class="toolbar-group">
+                            <button id="btn-patch-format" class="btn btn-secondary btn-icon" title="Format JSON Patch">
+                                <i data-lucide="align-left" class="icon"></i>
+                            </button>
+                        </div>
+
+                        <div class="toolbar-divider"></div>
+
+                        <div class="toolbar-group">
+                            <button id="btn-patch-undo" class="btn btn-secondary btn-icon" title="Undo (Ctrl+Z)"
+                                disabled>
+                                <i data-lucide="undo" class="icon"></i>
+                            </button>
+                            <button id="btn-patch-redo" class="btn btn-secondary btn-icon" title="Redo (Ctrl+Y)"
+                                disabled>
+                                <i data-lucide="redo" class="icon"></i>
+                            </button>
+                        </div>
+
+                        <div class="toolbar-group">
+                            <button id="btn-patch-copy" class="btn btn-secondary btn-icon" title="Copy JSON Patch">
+                                <i data-lucide="copy" class="icon"></i>
+                            </button>
+                            <button id="btn-patch-clear" class="btn btn-secondary btn-icon"
+                                title="Clear Patch (Reset Right Side)">
+                                <i data-lucide="trash-2" class="icon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="diff-patch-editor" class="monaco-container hidden" style="flex: 1; min-height: 0;"></div>
+                </div>
             </div>
 
             <!-- Query Panel -->
@@ -275,6 +332,7 @@
 
     <!-- Query Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/jmespath@0.16.0/jmespath.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fast-json-patch@3.1.1/dist/fast-json-patch.min.js"></script>
     <script type="module">
         import { jsonquery } from 'https://cdn.jsdelivr.net/npm/@jsonquerylang/jsonquery@5.1.1/lib/jsonquery.min.js';
         import { JSONPath } from 'https://cdn.jsdelivr.net/npm/jsonpath-plus@10.4.0/dist/index-browser-esm.min.js';

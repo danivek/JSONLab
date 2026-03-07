@@ -12,7 +12,7 @@ class TreeView {
 
   init() {
     this.contextMenu = null;
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', () => {
       this.closeContextMenu();
     });
   }
@@ -309,7 +309,7 @@ class TreeView {
       try {
         await navigator.clipboard.writeText(text);
         if (window.App) App.showToast(successMsg, 'success');
-      } catch (err) {
+      } catch {
         if (window.App) App.showToast('Copy failed', 'error');
       }
     };
