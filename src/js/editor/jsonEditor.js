@@ -26,7 +26,7 @@ class JsonEditor {
     this.wrapper.className = 'editor-instance';
     this.container.appendChild(this.wrapper);
 
-    this.init();
+    this.ready = this.init();
   }
 
   async init() {

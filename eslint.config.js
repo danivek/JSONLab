@@ -30,6 +30,7 @@ export default [
         require: 'readonly',
         ShareUtils: 'readonly',
         StorageUtils: 'readonly',
+        SchemaUtils: 'readonly',
       },
     },
     rules: {

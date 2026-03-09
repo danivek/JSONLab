@@ -733,6 +733,30 @@ body {
   background: rgba(239, 68, 68, 0.1);
 }
 
+/* Schema Validation Results */
+.schema-error-item {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--color-error);
+}
+
+.schema-error-item.clickable {
+  cursor: pointer;
+}
+
+.schema-error-item.clickable:hover {
+  text-decoration: underline;
+}
+
+.schema-error-icon {
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
 /* Query Panel */
 .query-panel {
   flex-direction: column;

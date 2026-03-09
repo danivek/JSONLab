@@ -49,6 +49,9 @@
                 <button id="btn-mode-query" class="btn btn-secondary" title="Query JSON">
                     <i data-lucide="search-code" class="icon"></i> Query
                 </button>
+                <button id="btn-mode-schema" class="btn btn-secondary" title="JSON Schema Gen/Val">
+                    <i data-lucide="file-json" class="icon"></i> JSON Schema
+                </button>
                 <div class="toolbar-divider"></div>
                 <button id="btn-share-global" class="btn btn-secondary" title="Share Workspace as URL Snippet">
                     <i data-lucide="share-2" class="icon"></i> Share
@@ -193,6 +196,40 @@
                             </button>
                         </div>
                         <div id="query-editor-output" class="monaco-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schema Panel -->
+            <div id="schema-panel" class="editor-panel schema-panel">
+                <div id="schema-editors-container" class="editors-container"
+                    style="display: flex; flex: 1; min-height: 0; flex-direction: row;">
+                    <div id="schema-input-container" class="editor-wrapper"
+                        style="flex: 1; display: flex; flex-direction: column; min-width: 0; border-right: none;">
+                        <div class="panel-header"
+                            style="background: var(--color-bg-secondary); padding: 8px 16px; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 13px;">
+                            JSON Payload</div>
+                    </div>
+                    <div id="schema-splitter" class="editor-splitter" style="display: flex;"></div>
+                    <div id="schema-output-container" class="editor-wrapper"
+                        style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+                        <div class="panel-header"
+                            style="background: var(--color-bg-secondary); padding: 8px 16px; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 13px;">
+                            JSON Schema</div>
+                    </div>
+                </div>
+                <!-- Validation Errors Panel -->
+                <div id="schema-resize-handle" class="diff-resize-handle"></div>
+                <!-- Schema Validation Errors -->
+                <div id="schema-errors-container" class="diff-output"
+                    style="height: 150px; border-top: 1px solid var(--color-border); display: flex; flex-direction: column; padding: 0;">
+                    <div class="diff-summary-header"
+                        style="padding: 8px 12px; border-bottom: 1px solid var(--color-border); font-size: 13px; font-weight: 600; background: var(--color-bg-tertiary); display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i> Validation Results
+                    </div>
+                    <div id="schema-errors-list"
+                        style="flex: 1; overflow: auto; padding: var(--space-md); color: var(--color-text-muted);">
+                        Waiting for validation...
                     </div>
                 </div>
             </div>
@@ -347,6 +384,7 @@
     <script type="module" src="js/utils/diffUtils.js"></script>
     <script type="module" src="js/utils/queryUtils.js"></script>
     <script type="module" src="js/utils/shareUtils.js"></script>
+    <script type="module" src="js/utils/schemaUtils.js"></script>
     <script type="module" src="js/editor/textEditor.js"></script>
     <script type="module" src="js/editor/treeView.js"></script>
     <script type="module" src="js/editor/tableView.js"></script>

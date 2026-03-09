@@ -78,6 +78,8 @@ const App = {
     const rightEditor = new JsonEditor(rightContainer, 'right', 'text');
     this.editors.push(rightEditor);
 
+    await Promise.all([leftEditor.ready, rightEditor.ready]);
+
     // Add Splitter between them (hidden by default)
     const splitter = document.createElement('div');
     splitter.className = 'editor-splitter';
@@ -132,7 +134,7 @@ const App = {
     const savedGlobalMode = window.StorageUtils
       ? StorageUtils.load(StorageUtils.KEYS.GLOBAL_VIEW_MODE, 'normal')
       : 'normal';
-    this.switchGlobalMode(savedGlobalMode);
+    await this.switchGlobalMode(savedGlobalMode);
 
     // Initialize Split Resizer
     this.initSplitResizer();
@@ -263,6 +265,9 @@ const App = {
     document
       .getElementById('btn-mode-query')
       ?.addEventListener('click', () => this.switchGlobalMode('query'));
+    document
+      .getElementById('btn-mode-schema')
+      ?.addEventListener('click', () => this.switchGlobalMode('schema'));
 
     // Query Run
     // Auto-run on input with debounce
@@ -328,7 +333,7 @@ const App = {
   /**
    * Switch Global App Mode (Normal, Split, Compare, Query)
    */
-  switchGlobalMode(mode) {
+  async switchGlobalMode(mode) {
     // Update UI
     document
       .querySelectorAll('.header-actions .btn')
@@ -345,6 +350,8 @@ const App = {
     editorsContainer.style.display = 'none';
     document.getElementById('compare-panel').style.display = 'none';
     document.getElementById('query-panel').style.display = 'none';
+    const schemaPanel = document.getElementById('schema-panel');
+    if (schemaPanel) schemaPanel.style.display = 'none';
 
     const splitter = document.getElementById('editors-splitter');
     if (splitter) splitter.style.display = 'none';
@@ -374,6 +381,12 @@ const App = {
     } else if (mode === 'query') {
       document.getElementById('query-panel').style.display = 'flex';
       this.initQuery();
+    } else if (mode === 'schema') {
+      document.getElementById('schema-panel').style.display = 'flex';
+      await this.initSchema();
+      // Ensure layout is updated for new visibility
+      if (this.schemaInputInstance?.editor) this.schemaInputInstance.editor.layout();
+      if (this.schemaOutputInstance?.editor) this.schemaOutputInstance.editor.layout();
     }
   },
 
@@ -995,6 +1008,7 @@ const App = {
     splitter.addEventListener('mousedown', (e) => {
       e.preventDefault();
       splitter.classList.add('dragging');
+      document.body.classList.add('resizing');
 
       const onMouseMove = (e) => {
         const containerRect = container.getBoundingClientRect();
@@ -1006,6 +1020,11 @@ const App = {
 
         leftWrapper.style.flex = `0 0 ${percentage}%`;
         rightWrapper.style.flex = `1 1 0`;
+
+        // Update editor layouts
+        this.editors.forEach((ed) => {
+          if (ed.editor) ed.editor.layout();
+        });
       };
 
       const onMouseUp = () => {
@@ -1047,6 +1066,218 @@ const App = {
 
   onContentChange() {},
 
+  async initSchema() {
+    if (!this.schemaEditorsInitialized) {
+      const inputContainer = document.getElementById('schema-input-container');
+      const outputContainer = document.getElementById('schema-output-container');
+
+      // Create JsonEditor instances for the schema view
+      this.schemaInputInstance = new JsonEditor(inputContainer, 'schema-input', 'text');
+      this.schemaOutputInstance = new JsonEditor(outputContainer, 'schema-output', 'text');
+
+      await Promise.all([this.schemaInputInstance.ready, this.schemaOutputInstance.ready]);
+
+      // Remove "Load Example" from schema instances as requested
+      this.schemaInputInstance.primaryToolbar?.querySelector('.btn-example')?.remove();
+      this.schemaOutputInstance.primaryToolbar?.querySelector('.btn-example')?.remove();
+
+      // Add "Generate Schema" button to the Output instance's primary toolbar
+      this.schemaOutputInstance.addPrimaryButton({
+        icon: 'wand-2',
+        title: 'Generate Schema from Main JSON',
+        label: 'Generate Schema',
+        className: 'btn-schema-generate',
+        position: 'left',
+        onClick: () => {
+          try {
+            const val = this.schemaInputInstance.getValue();
+            const json = JSON.parse(val || '{}');
+            if (window.SchemaUtils) {
+              const schema = SchemaUtils.generateSchema(json);
+              const schemaStr = JSON.stringify(schema, null, 2);
+              this.schemaOutputInstance.setValue(schemaStr);
+              this.showToast('Schema generated!', 'success');
+            }
+          } catch (e) {
+            this.showToast('Invalid JSON payload: ' + e.message, 'error');
+          }
+        },
+      });
+
+      this.schemaEditorsInitialized = true;
+
+      // Add validation listener
+      let validationTimeout;
+      const validatePayload = () => {
+        const schemaVal = this.schemaOutputInstance.getValue();
+        let schemaObj;
+        try {
+          schemaObj = JSON.parse(schemaVal || '{"type": "object"}');
+        } catch {
+          this.showSchemaErrors(['Invalid JSON Schema syntax']);
+          return;
+        }
+
+        const modelUri = this.schemaInputInstance.editor.getModel().uri;
+        monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+          validate: true,
+          schemas: [
+            {
+              uri: 'http://myserver/schema.json',
+              fileMatch: [modelUri.toString()],
+              schema: schemaObj,
+            },
+          ],
+        });
+
+        // Get markers after Monaco processes them
+        clearTimeout(validationTimeout);
+        validationTimeout = setTimeout(() => {
+          const markers = monaco.editor.getModelMarkers({ resource: modelUri });
+          this.showSchemaErrors(markers);
+        }, 100);
+      };
+
+      this.schemaOutputInstance.editor.onDidChangeModelContent(() => {
+        validatePayload();
+      });
+
+      this.schemaInputInstance.editor.onDidChangeModelContent(() => {
+        validatePayload();
+      });
+
+      // Splitter for schema panes
+      this.initSchemaSplitResizer();
+
+      // Resize handle for error panel
+      const handle = document.getElementById('schema-resize-handle');
+      const errorPanel = document.getElementById('schema-errors-container');
+      if (handle && errorPanel) {
+        handle.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          const startY = e.clientY;
+          const startHeight = errorPanel.offsetHeight;
+          const panel = document.getElementById('schema-panel');
+          handle.classList.add('dragging');
+
+          const onMouseMove = (e) => {
+            const delta = startY - e.clientY;
+            const panelHeight = panel.offsetHeight;
+            const newHeight = Math.min(
+              Math.max(40, startHeight + delta),
+              Math.floor(panelHeight * 0.8)
+            );
+            errorPanel.style.height = `${newHeight}px`;
+            errorPanel.style.minHeight = `${newHeight}px`;
+
+            // Re-layout instances
+            if (this.schemaInputInstance.editor) this.schemaInputInstance.editor.layout();
+            if (this.schemaOutputInstance.editor) this.schemaOutputInstance.editor.layout();
+          };
+          const onMouseUp = () => {
+            handle.classList.remove('dragging');
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          };
+
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      }
+
+      // Initial validation trigger
+      validatePayload();
+    }
+  },
+
+  initSchemaSplitResizer() {
+    const splitter = document.getElementById('schema-splitter');
+    const inputContainer = document.getElementById('schema-input-container');
+    const outputContainer = document.getElementById('schema-output-container');
+    const container = document.getElementById('schema-editors-container');
+
+    if (!splitter || !inputContainer || !outputContainer || !container) return;
+
+    splitter.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      splitter.classList.add('dragging');
+      document.body.classList.add('resizing');
+
+      const onMouseMove = (e) => {
+        const containerRect = container.getBoundingClientRect();
+        const containerWidth = containerRect.width;
+        const offset = e.clientX - containerRect.left;
+
+        const percentage = Math.min(Math.max(10, (offset / containerWidth) * 100), 90);
+
+        inputContainer.style.flex = `0 0 ${percentage}%`;
+        outputContainer.style.flex = `1 1 0`;
+
+        // Update editor layouts
+        if (this.schemaInputInstance?.editor) this.schemaInputInstance.editor.layout();
+        if (this.schemaOutputInstance?.editor) this.schemaOutputInstance.editor.layout();
+      };
+
+      const onMouseUp = () => {
+        splitter.classList.remove('dragging');
+        document.body.classList.remove('resizing');
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
+  },
+
+  showSchemaErrors(errors) {
+    const errorList = document.getElementById('schema-errors-list');
+    if (!errorList) return;
+    if (!errors || errors.length === 0) {
+      errorList.innerHTML = `<div class="schema-valid-msg"
+                            style="color: var(--color-success); display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> Document is valid
+                            against the schema.
+                        </div>`;
+      if (window.lucide) {
+        window.lucide.createIcons({ root: errorList });
+      }
+    } else {
+      errorList.innerHTML = '';
+      errors.forEach((err) => {
+        const isMarker = typeof err !== 'string';
+        const div = document.createElement('div');
+        div.className = `schema-error-item ${isMarker ? 'clickable' : ''}`;
+
+        const iconName = isMarker ? 'circle-alert' : 'info';
+        const message = isMarker ? `Line ${err.startLineNumber}: ${err.message}` : err;
+
+        div.innerHTML = `
+          <i data-lucide="${iconName}" class="schema-error-icon"></i>
+          <span>${message}</span>
+        `;
+
+        if (isMarker) {
+          div.onclick = () => {
+            const editor = this.schemaInputInstance?.editor;
+            if (editor) {
+              editor.revealLineInCenter(err.startLineNumber);
+              editor.setPosition({
+                lineNumber: err.startLineNumber,
+                column: err.startColumn || 1,
+              });
+              editor.focus();
+            }
+          };
+        }
+        errorList.appendChild(div);
+      });
+      if (window.lucide) {
+        window.lucide.createIcons({ root: errorList });
+      }
+    }
+  },
+
   showToast(message, type = 'info') {
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
@@ -1074,6 +1305,16 @@ const App = {
       const engine = document.querySelector('input[name="query-engine"]:checked');
       if (queryInput) state.q = { i: queryInput.value, e: engine ? engine.value : 'jsonpath' };
     }
+
+    if (state.m === 'schema') {
+      if (this.schemaInputInstance && this.schemaOutputInstance) {
+        state.s = {
+          i: this.schemaInputInstance.getValue(),
+          o: this.schemaOutputInstance.getValue(),
+        };
+      }
+    }
+
     return state;
   },
 
@@ -1115,6 +1356,12 @@ const App = {
 
       // Execute query
       setTimeout(() => this.runQuery(), 100);
+    }
+
+    // 4. Restore schema state
+    if (state.m === 'schema' && state.s) {
+      if (this.schemaInputInstance) this.schemaInputInstance.setValue(state.s.i || '{}');
+      if (this.schemaOutputInstance) this.schemaOutputInstance.setValue(state.s.o || '{}');
     }
   },
 };
