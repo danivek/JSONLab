@@ -85,12 +85,10 @@ class TreeView {
       const jsPath = this.getJsPath(currentPathArray);
       const jsonPointer = this.getJsonPointer(currentPathArray);
 
-      // Notify App (Global) or Editor Instance if we had a reference
-      // For now, fall back to global App for status bar updates if available
-      if (window.App) {
-        // Ideally this should call a method on the owning JsonEditor
-        // We'll trust App.updatePathDisplay for now or fix this later
-        window.App.updatePathDisplay(jsPath, jsonPointer);
+      // Notify the owning JsonEditor instance to update its status bar
+      const instance = this.getOwnerInstance();
+      if (instance && typeof instance.updatePathDisplay === 'function') {
+        instance.updatePathDisplay(jsPath, jsonPointer);
       }
 
       // Highlight selected node
@@ -349,15 +347,10 @@ class TreeView {
     if (typeof data.value === 'object') {
       menu.appendChild(
         createItem('Extract (Replace content)', 'external-link', () => {
-          if (window.App && this.container) {
-            const editorPanel = this.container.closest('.editor-instance');
-            if (editorPanel) {
-              const instance = App.editors.find((e) => e.wrapper === editorPanel);
-              if (instance) {
-                instance.setValue(valueString);
-                App.showToast('Extracted JSON into editor', 'success');
-              }
-            }
+          const instance = this.getOwnerInstance();
+          if (instance) {
+            instance.setValue(valueString);
+            if (window.App) App.showToast('Extracted JSON into editor', 'success');
           } else {
             copyToClipboard(valueString, 'Extracted content copied');
           }
@@ -428,19 +421,23 @@ class TreeView {
     // Re-render tree
     this.render();
 
-    // Sync with TextEditor if possible
-    // We dispatch a custom event or check for global App
-    if (window.App && this.container) {
-      // Hacky way to find parent JsonEditor instance to update its text value
-      const editorPanel = this.container.closest('.editor-instance');
-      if (editorPanel) {
-        // App.editors array holds instances
-        const instance = App.editors.find((e) => e.wrapper === editorPanel);
-        if (instance) {
-          instance.setValue(JSON.stringify(this.data, null, 2));
-        }
-      }
+    // Sync with TextEditor
+    const instance = this.getOwnerInstance();
+    if (instance) {
+      instance.setValue(JSON.stringify(this.data, null, 2));
     }
+  }
+
+  /**
+   * Helper to find the JsonEditor instance that owns this tree view
+   */
+  getOwnerInstance() {
+    if (!window.App || !App.editors || !this.container) return null;
+
+    const editorPanel = this.container.closest('.editor-instance');
+    if (!editorPanel) return null;
+
+    return App.editors.find((e) => e.wrapper === editorPanel);
   }
 
   clear() {

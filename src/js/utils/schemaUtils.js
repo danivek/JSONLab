@@ -93,24 +93,24 @@ const SchemaUtils = {
             const requiredCounts = {};
             schemas.forEach(schema => {
                 if (schema.properties) {
-                    for (const key in schema.properties) {
+                    Object.keys(schema.properties).forEach(key => {
                         if (!mergedProperties[key]) {
                             mergedProperties[key] = [];
                         }
                         mergedProperties[key].push(schema.properties[key]);
                         requiredCounts[key] = (requiredCounts[key] || 0) + 1;
-                    }
+                    });
                 }
             });
 
             const finalProperties = {};
             const finalRequired = [];
-            for (const key in mergedProperties) {
+            Object.keys(mergedProperties).forEach(key => {
                 finalProperties[key] = this._unifySchemas(mergedProperties[key]);
                 if (requiredCounts[key] === schemas.length) {
                     finalRequired.push(key);
                 }
-            }
+            });
             
             const result = { type: "object", properties: finalProperties };
             if (finalRequired.length > 0) {
@@ -140,4 +140,3 @@ const SchemaUtils = {
 };
 
 window.SchemaUtils = SchemaUtils;
-export default SchemaUtils;

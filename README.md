@@ -61,6 +61,13 @@ Switch to **Split Mode** from the header. Use the **→** button on the left pan
 
 Switch to **Compare Mode**. The left and right editor contents are loaded into a Monaco Diff Editor. A change summary panel below the diff view lists all additions, deletions, and modifications.
 
+### JSON Schema
+
+Switch to **JSON Schema Mode**. The left editor contains your main JSON payload, and the right editor contains the JSON Schema.
+
+- **Validate:** The payload is validated against the schema in real-time, with errors shown in a dedicated panel below.
+- **Generate:** Click **Generate Schema** to automatically build a valid JSON Schema based on your current JSON payload.
+
 ### Querying JSON
 
 Switch to **Query Mode**. The current active editor content is loaded into the input panel. Choose your query engine ([JMESPath](https://jmespath.org/), [JSONPath Plus](https://github.com/JSONPath-Plus/JSONPath), or [JSONQuery](https://github.com/jsonquerylang/jsonquery)) and type your expression — results update automatically as you type, and the transformation is applied to the main editor live.

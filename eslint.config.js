@@ -31,6 +31,10 @@ export default [
         ShareUtils: 'readonly',
         StorageUtils: 'readonly',
         SchemaUtils: 'readonly',
+        DomUtils: 'readonly',
+        CompareController: 'readonly',
+        QueryController: 'readonly',
+        SchemaController: 'readonly',
       },
     },
     rules: {

@@ -61,14 +61,8 @@ const ShareUtils = {
     }
 
     // Merge chunks
-    let totalLength = 0;
-    chunks.forEach((chunk) => (totalLength += chunk.length));
-    const compressedData = new Uint8Array(totalLength);
-    let offset = 0;
-    chunks.forEach((chunk) => {
-      compressedData.set(chunk, offset);
-      offset += chunk.length;
-    });
+    const blob = new Blob(chunks);
+    const compressedData = new Uint8Array(await blob.arrayBuffer());
 
     return this.bytesToBase64Url(compressedData);
   },
@@ -101,14 +95,8 @@ const ShareUtils = {
     }
 
     // Merge chunks
-    let totalLength = 0;
-    chunks.forEach((chunk) => (totalLength += chunk.length));
-    const decompressedData = new Uint8Array(totalLength);
-    let offset = 0;
-    chunks.forEach((chunk) => {
-      decompressedData.set(chunk, offset);
-      offset += chunk.length;
-    });
+    const blob = new Blob(chunks);
+    const decompressedData = new Uint8Array(await blob.arrayBuffer());
 
     // Convert back to string
     const decoder = new TextDecoder();

@@ -110,28 +110,9 @@ const JsonUtils = {
     return JSON.parse(JSON.stringify(obj));
   },
 
-  /**
-   * Flatten nested JSON object
-   */
-  flatten(obj, prefix = '') {
-    const result = {};
-
-    for (const key in obj) {
-      const newKey = prefix ? `${prefix}.${key}` : key;
-
-      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-        Object.assign(result, this.flatten(obj[key], newKey));
-      } else {
-        result[newKey] = obj[key];
-      }
-    }
-
-    return result;
-  },
 
   /**
-   * Get JSON path at specific offset
-   * specific for Monaco editor cursor position
+   * Get JSON path at the specific character offset (for Monaco cursor position).
    */
   getPathAtOffset(jsonString, offset) {
     if (!jsonString || offset < 0) return null;
@@ -153,17 +134,29 @@ const JsonUtils = {
       const char = jsonString[pos];
 
       if (inString) {
-        if (char === '"' && jsonString[pos - 1] !== '\\') {
-          inString = false;
-          const val = jsonString.substring(stringStart + 1, pos);
-
-          if (isKey) {
-            lastKey = val;
-            isKey = false;
+        if (char === '"') {
+          // Count preceding backslashes to handle escaped quotes properly (e.g., \\" is a literal quote, but \\\\" is an escaped backslash followed by a literal quote?) 
+          // Actually in JSON, \" is escaped quote. \\ is escaped backslash.
+          // So we need to know if the quote is preceded by an ODD number of backslashes.
+          let backslashes = 0;
+          let p = pos - 1;
+          while (p >= 0 && jsonString[p] === '\\') {
+            backslashes++;
+            p--;
           }
 
-          if (checkOffset()) {
-            break;
+          if (backslashes % 2 === 0) {
+            inString = false;
+            const val = jsonString.substring(stringStart + 1, pos);
+
+            if (isKey) {
+              lastKey = val;
+              isKey = false;
+            }
+
+            if (checkOffset()) {
+              break;
+            }
           }
         }
       } else {

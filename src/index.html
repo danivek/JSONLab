@@ -49,8 +49,8 @@
                 <button id="btn-mode-query" class="btn btn-secondary" title="Query JSON">
                     <i data-lucide="search-code" class="icon"></i> Query
                 </button>
-                <button id="btn-mode-schema" class="btn btn-secondary" title="JSON Schema Gen/Val">
-                    <i data-lucide="file-json" class="icon"></i> JSON Schema
+                <button id="btn-mode-schema" class="btn btn-secondary" title="JSON Schema Validation">
+                    <i data-lucide="file-check" class="icon"></i> JSON Schema
                 </button>
                 <div class="toolbar-divider"></div>
                 <button id="btn-share-global" class="btn btn-secondary" title="Share Workspace as URL Snippet">
@@ -204,14 +204,14 @@
             <div id="schema-panel" class="editor-panel schema-panel">
                 <div id="schema-editors-container" class="editors-container"
                     style="display: flex; flex: 1; min-height: 0; flex-direction: row;">
-                    <div id="schema-input-container" class="editor-wrapper"
+                    <div id="schema-payload-container" class="editor-wrapper"
                         style="flex: 1; display: flex; flex-direction: column; min-width: 0; border-right: none;">
                         <div class="panel-header"
                             style="background: var(--color-bg-secondary); padding: 8px 16px; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 13px;">
                             JSON Payload</div>
                     </div>
                     <div id="schema-splitter" class="editor-splitter" style="display: flex;"></div>
-                    <div id="schema-output-container" class="editor-wrapper"
+                    <div id="schema-jsonschema-container" class="editor-wrapper"
                         style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
                         <div class="panel-header"
                             style="background: var(--color-bg-secondary); padding: 8px 16px; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 13px;">
@@ -379,18 +379,21 @@
 
     <!-- App Scripts -->
     <script type="module" src="js/utils/storageUtils.js"></script>
+    <script type="module" src="js/utils/domUtils.js"></script>
     <script type="module" src="js/utils/jsonUtils.js"></script>
     <script type="module" src="js/utils/csvUtils.js"></script>
     <script type="module" src="js/utils/diffUtils.js"></script>
     <script type="module" src="js/utils/queryUtils.js"></script>
     <script type="module" src="js/utils/shareUtils.js"></script>
     <script type="module" src="js/utils/schemaUtils.js"></script>
+    <script type="module" src="js/app/CompareController.js"></script>
+    <script type="module" src="js/app/QueryController.js"></script>
+    <script type="module" src="js/app/SchemaController.js"></script>
     <script type="module" src="js/editor/textEditor.js"></script>
     <script type="module" src="js/editor/treeView.js"></script>
     <script type="module" src="js/editor/tableView.js"></script>
     <script type="module" src="js/ui/theme.js"></script>
     <script type="module" src="js/ui/modal.js"></script>
-    <script type="module" src="js/ui/toolbar.js"></script>
     <script type="module" src="js/ui/editorToolbar.js"></script>
     <script type="module" src="js/editor/jsonEditor.js"></script>
     <script type="module" src="js/app.js"></script>

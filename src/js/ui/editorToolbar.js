@@ -99,8 +99,6 @@ class EditorToolbar {
     on('.btn-autoformat', () => this.editor.toggleAutoFormat());
     on('.btn-sort', () => this.editor.sort(false));
     on('.btn-sort-desc', () => this.editor.sort(true));
-    on('.btn-validate', () => this.editor.validate());
-    on('.btn-repair', () => this.editor.repair());
     on('.btn-expand', () => this.editor.expandAll());
     on('.btn-collapse', () => this.editor.collapseAll());
     on('.btn-undo', () => this.editor.undo());

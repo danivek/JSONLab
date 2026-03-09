@@ -451,14 +451,6 @@ body {
 }
 
 /* Tree View */
-.tree-toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border);
-}
 
 .tree-container {
   flex: 1;
@@ -548,9 +540,6 @@ body {
   display: block;
 }
 
-.tree-node.highlight>.tree-node-header {
-  background: var(--color-accent-light);
-}
 
 /* Context Menu */
 .context-menu {
@@ -894,16 +883,6 @@ body {
   min-height: 32px;
 }
 
-.btn-success {
-  background: var(--color-success);
-  border-color: var(--color-success);
-  color: white;
-}
-
-.btn-success:hover {
-  background: #059669;
-  /* Darker green */
-}
 
 /* Status Bar */
 .status-bar {
@@ -1095,31 +1074,6 @@ body {
   color: var(--color-text-primary);
 }
 
-/* Drag and Drop Overlay */
-.drop-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(79, 70, 229, 0.1);
-  border: 3px dashed var(--color-accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  pointer-events: none;
-}
-
-.drop-overlay.hidden {
-  display: none;
-}
-
-.drop-overlay-text {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  color: var(--color-accent);
-  background: var(--color-bg-primary);
-  padding: var(--space-lg) var(--space-xl);
-  border-radius: var(--radius-lg);
-}
 
 /* Scrollbar Styling */
 ::-webkit-scrollbar {

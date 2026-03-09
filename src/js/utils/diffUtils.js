@@ -166,34 +166,6 @@ const DiffUtils = {
     return div.innerHTML;
   },
 
-  /**
-   * Generate line-by-line diff of two JSON strings
-   */
-  lineDiff(str1, str2) {
-    const lines1 = str1.split('\n');
-    const lines2 = str2.split('\n');
-
-    const result = [];
-    const maxLines = Math.max(lines1.length, lines2.length);
-
-    for (let i = 0; i < maxLines; i++) {
-      const line1 = lines1[i];
-      const line2 = lines2[i];
-
-      if (line1 === undefined) {
-        result.push({ type: 'added', lineNum: i + 1, content: line2 });
-      } else if (line2 === undefined) {
-        result.push({ type: 'removed', lineNum: i + 1, content: line1 });
-      } else if (line1 !== line2) {
-        result.push({ type: 'removed', lineNum: i + 1, content: line1 });
-        result.push({ type: 'added', lineNum: i + 1, content: line2 });
-      } else {
-        result.push({ type: 'unchanged', lineNum: i + 1, content: line1 });
-      }
-    }
-
-    return result;
-  },
 };
 
 // Export for use in other modules

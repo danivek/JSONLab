@@ -36,10 +36,17 @@ const Theme = {
     this.updateIcon(theme);
 
     // Update Monaco editor theme
-    // Update Monaco editor theme
     if (window.App && typeof window.App.updateTheme === 'function') {
       window.App.updateTheme();
     }
+  },
+
+  /**
+   * Returns the Monaco theme name matching the current app theme.
+   * Use this instead of repeating the data-theme attribute check.
+   */
+  getMonacoTheme() {
+    return this.get() === 'dark' ? 'json-dark' : 'json-light';
   },
 
   /**
