@@ -85,7 +85,7 @@ export default class QueryController {
       let result;
 
       if (window.QueryUtils) {
-        result = QueryUtils.execute(data, query, engine);
+        result = QueryUtils.query(data, query, engine);
         this.queryOutputEditor?.setValue(JSON.stringify(result, null, 2));
       }
     } catch (e) {
