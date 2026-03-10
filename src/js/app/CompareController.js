@@ -60,6 +60,21 @@ export default class CompareController {
 
       const originalModel = monaco.editor.createModel(leftContent, 'json');
       const modifiedModel = monaco.editor.createModel(rightContent, 'json');
+      
+      originalModel.onDidChangeContent(() => {
+        const val = originalModel.getValue();
+        if (this.app.editors[0] && this.app.editors[0].getValue() !== val) {
+          this.app.editors[0].setValue(val);
+        }
+      });
+
+      modifiedModel.onDidChangeContent(() => {
+        const val = modifiedModel.getValue();
+        if (this.app.editors[1] && this.app.editors[1].getValue() !== val) {
+          this.app.editors[1].setValue(val);
+        }
+      });
+
       this.diffEditor.setModel({
         original: originalModel,
         modified: modifiedModel,
