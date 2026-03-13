@@ -198,7 +198,16 @@ export default class JsonEditor {
   }
 
   getJsPath(pathArray) {
-    return pathArray.map(key => typeof key === 'number' ? `[${key}]` : (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? `.${key}` : `["${String(key).replace(/"/g, '\\"')}"]`)).join('').replace(/^\./, '');
+    return pathArray
+      .map((key) =>
+        typeof key === 'number' || /^\d+$/.test(key)
+          ? `[${key}]`
+          : /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)
+            ? `.${key}`
+            : `["${String(key).replace(/"/g, '\\"')}"]`
+      )
+      .join('')
+      .replace(/^\./, '');
   }
 
   getJsonPointer(pathArray) {

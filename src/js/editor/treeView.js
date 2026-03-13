@@ -218,7 +218,7 @@ class TreeView {
   getJsPath(pathArray) {
     let path = '';
     pathArray.forEach((key) => {
-      if (typeof key === 'number') {
+      if (typeof key === 'number' || /^\d+$/.test(key)) {
         path += `[${key}]`;
       } else if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)) {
         path += `.${key}`;
