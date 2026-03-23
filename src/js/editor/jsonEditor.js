@@ -184,6 +184,7 @@ export default class JsonEditor {
     this.editor.onDidChangeModelContent(() => this.onContentChange());
     this.editor.onDidFocusEditorWidget(() => App.setActiveEditor(this));
     this.editor.onDidChangeCursorPosition((e) => this.onCursorChange(e));
+    this.updateStatusBar();
   }
 
   onCursorChange(e) {
