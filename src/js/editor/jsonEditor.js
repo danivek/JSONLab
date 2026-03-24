@@ -12,6 +12,7 @@ export default class JsonEditor {
     
     this.isFormatting = false;
     this.autoFormatTimer = null;
+    this.saveDebounceTimer = null;
     this.editor = null; // Monaco instance
     this.history = [];
     this.historyIndex = -1;
@@ -270,7 +271,12 @@ export default class JsonEditor {
     if (this.isFormatting) return;
     this.saveToHistory();
     this.updateStatusBar();
-    StorageUtils.saveToIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + this.id, this.getValue());
+
+    // Debounce IndexedDB writes to avoid excessive I/O on every keystroke
+    clearTimeout(this.saveDebounceTimer);
+    this.saveDebounceTimer = setTimeout(() => {
+      StorageUtils.saveToIndexedDB(StorageUtils.KEYS.WORKSPACE_CONTENT + this.id, this.getValue());
+    }, 500);
 
     if (this.autoFormatEnabled && this.mode === 'text' && this.editor) {
       if (JsonUtils.validate(this.getValue()).valid) {
