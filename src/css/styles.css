@@ -540,6 +540,25 @@ body {
   display: block;
 }
 
+/* Load-more button for virtualized tree chunks */
+.tree-load-more {
+  display: block;
+  margin: var(--space-xs) 0 var(--space-xs) var(--space-lg);
+  padding: 2px var(--space-sm);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tree-load-more:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
 
 /* Context Menu */
 .context-menu {

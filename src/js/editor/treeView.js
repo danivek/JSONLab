@@ -3,6 +3,9 @@
  */
 
 class TreeView {
+  /** Max children to render at once before showing a "Load more" button */
+  static CHUNK_SIZE = 100;
+
   constructor(container) {
     this.container = container;
     this.data = null;
@@ -202,16 +205,36 @@ class TreeView {
   }
 
   populateChildren(container, value, parentPathArray) {
-    if (Array.isArray(value)) {
-      value.forEach((item, index) => {
-        const childNode = this.createNode(item, index.toString(), parentPathArray);
-        container.appendChild(childNode);
+    const entries = Array.isArray(value)
+      ? value.map((item, index) => ({ key: index.toString(), val: item }))
+      : Object.entries(value).map(([key, val]) => ({ key, val }));
+
+    this._renderChunk(container, entries, 0, parentPathArray);
+  }
+
+  /**
+   * Render a slice of entries into `container`, appending a "Load more" button
+   * if there are remaining items beyond this chunk.
+   */
+  _renderChunk(container, entries, startIndex, parentPathArray) {
+    const end = Math.min(startIndex + TreeView.CHUNK_SIZE, entries.length);
+
+    for (let i = startIndex; i < end; i++) {
+      const { key, val } = entries[i];
+      container.appendChild(this.createNode(val, key, parentPathArray));
+    }
+
+    if (end < entries.length) {
+      const remaining = entries.length - end;
+      const loadMoreBtn = document.createElement('button');
+      loadMoreBtn.className = 'tree-load-more';
+      loadMoreBtn.textContent = `Load ${Math.min(remaining, TreeView.CHUNK_SIZE)} more… (${remaining} remaining)`;
+      loadMoreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        loadMoreBtn.remove();
+        this._renderChunk(container, entries, end, parentPathArray);
       });
-    } else {
-      Object.entries(value).forEach(([key, val]) => {
-        const childNode = this.createNode(val, key, parentPathArray);
-        container.appendChild(childNode);
-      });
+      container.appendChild(loadMoreBtn);
     }
   }
 
