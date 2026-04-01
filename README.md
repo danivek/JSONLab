@@ -26,6 +26,7 @@ It provides a editing experience with powerful tools for viewing, editing, forma
     - [Importing Files](#importing-files)
     - [Exporting](#exporting)
   - [⌨️ Keyboard Shortcuts](#️-keyboard-shortcuts)
+  - [📱 PWA Support](#-pwa-support)
   - [🚀 Getting Started (Developer)](#-getting-started-developer)
     - [Development](#development)
     - [Production Build](#production-build)
@@ -93,6 +94,10 @@ Click **Export** in the editor toolbar to download the current content as `data.
 | `Ctrl/Cmd + Shift + Z` or `Ctrl/Cmd + Y` | Redo |
 
 Standard Monaco editor shortcuts (find, replace, multi-cursor, etc.) are also available in Text mode.
+
+## 📱 PWA Support
+
+JSONLab is installable as a **Progressive Web App** on desktop and mobile. Click the install button in your browser's address bar (or use the browser menu) to add it to your home screen or taskbar. Once installed, it runs as a standalone app with offline support via a service worker.
 
 ## 🚀 Getting Started (Developer)
 
