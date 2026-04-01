@@ -25,5 +25,14 @@
     "terser": "^5.39.0",
     "vite": "^6.1.1",
     "vite-plugin-pwa": "^1.2.0"
+  },
+  "dependencies": {
+    "@jsonquerylang/jsonquery": "^5.1.1",
+    "fast-json-patch": "^3.1.1",
+    "jmespath": "^0.16.0",
+    "jsonpath-plus": "^10.4.0",
+    "jsonrepair": "^3.13.3",
+    "lucide": "^1.7.0",
+    "monaco-editor": "^0.55.1"
   }
 }

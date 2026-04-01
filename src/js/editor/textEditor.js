@@ -7,43 +7,30 @@ const TextEditor = {
    * Load Monaco Editor Library
    */
   async load() {
-    return new Promise((resolve) => {
-      require.config({
-        paths: {
-          vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs',
-        },
-      });
+    monaco.editor.defineTheme('json-light', {
+      base: 'vs',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#ffffff',
+        'editorStickyScroll.background': '#eaeaea',
+        'editorStickyScrollHover.background': '#e0e0e0',
+        'editorStickyScroll.shadow': '#d0d0d0',
+        'editorStickyScroll.border': '#cccccc',
+      },
+    });
 
-      require(['vs/editor/editor.main'], () => {
-        // Define JSON theme
-        monaco.editor.defineTheme('json-light', {
-          base: 'vs',
-          inherit: true,
-          rules: [],
-          colors: {
-            'editor.background': '#ffffff',
-            'editorStickyScroll.background': '#eaeaea',
-            'editorStickyScrollHover.background': '#e0e0e0',
-            'editorStickyScroll.shadow': '#d0d0d0',
-            'editorStickyScroll.border': '#cccccc',
-          },
-        });
-
-        monaco.editor.defineTheme('json-dark', {
-          base: 'vs-dark',
-          inherit: true,
-          rules: [],
-          colors: {
-            'editor.background': '#1e1e1e',
-            'editorStickyScroll.background': '#2d2d30',
-            'editorStickyScrollHover.background': '#3a3a3c',
-            'editorStickyScroll.shadow': '#000000',
-            'editorStickyScroll.border': '#454545',
-          },
-        });
-
-        resolve();
-      });
+    monaco.editor.defineTheme('json-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#1e1e1e',
+        'editorStickyScroll.background': '#2d2d30',
+        'editorStickyScrollHover.background': '#3a3a3c',
+        'editorStickyScroll.shadow': '#000000',
+        'editorStickyScroll.border': '#454545',
+      },
     });
   },
 

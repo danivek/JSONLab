@@ -16,6 +16,9 @@ export default defineConfig({
           if (assetInfo.names?.some((n) => /\.(css)$/.test(n))) return 'css/[name]-[hash][extname]';
           return 'assets/[name]-[hash][extname]';
         },
+        manualChunks: {
+          monaco: ['monaco-editor/esm/vs/editor/editor.api', 'monaco-editor/esm/vs/language/json/monaco.contribution'],
+        },
       },
     },
   },
@@ -59,6 +62,11 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: '.',
       filename: 'sw.js',
+      injectManifest: {
+        // Monaco and its workers can be several MB — exclude from precache,
+        // they will be cached at runtime on first use instead.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
     }),
   ],
 });
