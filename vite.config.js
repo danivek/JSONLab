@@ -22,7 +22,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['css/favicon.svg', 'icons/apple-touch-icon.png', 'icons/icon.svg'],
+      includeAssets: ['assets/favicon.svg', 'icons/apple-touch-icon.png', 'icons/icon.svg'],
       manifest: {
         name: 'JSONLab',
         short_name: 'JSONLab',
